@@ -30,16 +30,36 @@ impl Parser {
         let mut ast = AST::new();
 
         while self.curr_token.token_type != TokenType::EOF {
-            if self.curr_token.token_type == TokenType::Layout
-                && self.next_token.token_type == TokenType::LParen
-            {
-                ast.statements.push(Statement::new("Layout"));
+            if let Some(statement) = self.parse_statement() {
+                ast.statements.push(statement);
             }
-
             self.next_token();
         }
 
         ast
+    }
+
+    fn parse_statement(&mut self) -> Option<Statement> {
+        match self.curr_token.token_type {
+            TokenType::LParen => None,
+            TokenType::RParen => None,
+            TokenType::LSqBrace => None,
+            TokenType::RSqBrace => None,
+            TokenType::Equals => None,
+            TokenType::Comma => None,
+            TokenType::Layout => self.parser_layout_statement(),
+            TokenType::Blank => None,
+            TokenType::Unknown => None,
+            TokenType::EOF => None,
+        }
+    }
+
+    fn parser_layout_statement(&self) -> Option<Statement> {
+        if self.next_token.token_type != TokenType::LParen {
+            return None;
+        }
+
+        Some(Statement::new("Layout"))
     }
 }
 
