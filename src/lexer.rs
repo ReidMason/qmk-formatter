@@ -9,11 +9,13 @@ pub struct Lexer {
 
 impl Lexer {
     pub fn new(content: String) -> Self {
+        let ch = content.chars().next();
+
         Self {
-            content: content.clone(),
+            content,
             position: 0,
             read_position: 1,
-            ch: content.chars().next(),
+            ch,
         }
     }
 
