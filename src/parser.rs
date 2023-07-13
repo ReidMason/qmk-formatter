@@ -1,18 +1,7 @@
-use crate::lexer::{Lexer, Token, TokenType};
-
-struct AST {
-    statements: Vec<Statement>,
-}
-
-impl AST {
-    fn new() -> Self {
-        Self { statements: vec![] }
-    }
-}
-
-struct Statement {
-    name: String,
-}
+use crate::{
+    ast::{Statement, AST},
+    lexer::{Lexer, Token, TokenType},
+};
 
 struct Parser {
     lexer: Lexer,
@@ -44,9 +33,7 @@ impl Parser {
             if self.curr_token.token_type == TokenType::Layout
                 && self.next_token.token_type == TokenType::LParen
             {
-                ast.statements.push(Statement {
-                    name: "Layout".to_string(),
-                });
+                ast.statements.push(Statement::new("Layout"));
             }
 
             self.next_token();
