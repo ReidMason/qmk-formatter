@@ -19,63 +19,41 @@ impl Lexer {
         }
     }
 
-    pub fn next_token(&mut self) -> Option<Token> {
+    pub fn next_token(&mut self) -> Token {
         self.skip_whitespace();
 
-        let token: Token = match self.ch {
-            Some('(') => Token {
-                token_type: TokenType::LParen,
-                literal: self.ch?.to_string(),
-            },
-            Some(')') => Token {
-                token_type: TokenType::RParen,
-                literal: self.ch?.to_string(),
-            },
-            Some('[') => Token {
-                token_type: TokenType::LSqBrace,
-                literal: self.ch?.to_string(),
-            },
-            Some(']') => Token {
-                token_type: TokenType::RSqBrace,
-                literal: self.ch?.to_string(),
-            },
-            Some(',') => Token {
-                token_type: TokenType::Comma,
-                literal: self.ch?.to_string(),
-            },
-            Some('=') => Token {
-                token_type: TokenType::Equals,
-                literal: self.ch?.to_string(),
-            },
-            None => return None,
+        let ch = match self.ch {
+            Some(x) => x,
+            None => return Token::new(TokenType::EOF, ""),
+        };
+
+        let token: Token = match ch {
+            '(' => Token::new(TokenType::LParen, &ch.to_string()),
+            ')' => Token::new(TokenType::RParen, &ch.to_string()),
+            '[' => Token::new(TokenType::LSqBrace, &ch.to_string()),
+            ']' => Token::new(TokenType::RSqBrace, &ch.to_string()),
+            ',' => Token::new(TokenType::Comma, &ch.to_string()),
+            '=' => Token::new(TokenType::Equals, &ch.to_string()),
             _ => {
                 let identifier = self.read_identifier();
 
                 if identifier == "LAYOUT" {
-                    return Some(Token {
-                        token_type: TokenType::Layout,
-                        literal: identifier,
-                    });
+                    return Token::new(TokenType::Layout, &identifier);
                 } else if identifier.replace("_", "").is_empty() {
-                    return Some(Token {
-                        token_type: TokenType::Blank,
-                        literal: identifier,
-                    });
+                    return Token::new(TokenType::Blank, &identifier);
                 }
 
-                return Some(Token {
-                    token_type: TokenType::Unknown,
-                    literal: identifier,
-                });
+                return Token::new(TokenType::Unknown, &identifier);
             }
         };
 
         self.read_char();
 
-        return Some(token);
+        return token;
     }
 
     fn read_identifier(&mut self) -> String {
+        // TODO: Remove the unwraps here
         let mut identifier = "".to_string();
         while self.ch.unwrap().is_alphanumeric() || self.ch == Some('_') {
             identifier.push_str(&self.ch.unwrap().to_string());
@@ -102,8 +80,8 @@ impl Lexer {
     }
 }
 
-#[derive(Debug, PartialEq)]
-enum TokenType {
+#[derive(Debug, PartialEq, Clone)]
+pub enum TokenType {
     LParen,
     RParen,
     LSqBrace,
@@ -113,11 +91,13 @@ enum TokenType {
     Layout,
     Blank,
     Unknown,
+    EOF,
 }
 
+#[derive(Clone)]
 pub struct Token {
-    token_type: TokenType,
-    literal: String,
+    pub token_type: TokenType,
+    pub literal: String,
 }
 
 impl Token {
@@ -174,16 +154,19 @@ mod tests {
 
         let mut token = lexer.next_token();
         let mut counter = 1;
-        while token.is_some() {
+        while token.token_type != TokenType::EOF {
             let expected = expected_types.remove(0);
-            let t = token.as_ref().unwrap();
 
             assert_eq!(
-                expected.token_type, t.token_type,
+                expected.token_type, token.token_type,
                 "Failed at token: {}",
                 counter
             );
-            assert_eq!(expected.literal, t.literal, "Failed at token: {}", counter);
+            assert_eq!(
+                expected.literal, token.literal,
+                "Failed at token: {}",
+                counter
+            );
 
             counter += 1;
             token = lexer.next_token();

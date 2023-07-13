@@ -1,5 +1,5 @@
 mod lexer;
-use crate::lexer::Lexer;
+mod parser;
 
 fn main() {
     let content = r##"[_QWERTY] = LAYOUT(
@@ -9,11 +9,11 @@ fn main() {
                           KC_LALT , NAV  , SYM  , KC_ENT  , KC_LGUI ,         KC_RGUI , KC_SPC  , NAV  , _______ , _______                              
 ),"##.to_string();
 
-    let mut lexer = Lexer::new(content);
-
-    let mut token = lexer.next_token();
-    while token.is_some() {
-        println!("{}", token.unwrap());
-        token = lexer.next_token();
-    }
+    // let mut lexer = Lexer::new(content);
+    //
+    // let mut token = lexer.next_token();
+    // while token.token_type 1= {
+    //     println!("{}", token.unwrap());
+    //     token = lexer.next_token();
+    // }
 }
