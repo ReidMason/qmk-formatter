@@ -55,7 +55,7 @@ impl Lexer {
     fn read_identifier(&mut self) -> String {
         // TODO: Remove the unwraps here
         let mut identifier = "".to_string();
-        while self.ch.unwrap().is_alphanumeric() || self.ch == Some('_') {
+        while identifier.is_empty() || self.ch.unwrap().is_alphanumeric() || self.ch == Some('_') {
             identifier.push_str(&self.ch.unwrap().to_string());
             self.read_char();
         }
@@ -94,14 +94,14 @@ pub enum TokenType {
     EOF,
 }
 
-#[derive(Clone)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct Token {
     pub token_type: TokenType,
     pub literal: String,
 }
 
 impl Token {
-    fn new(token_type: TokenType, literal: &str) -> Self {
+    pub fn new(token_type: TokenType, literal: &str) -> Self {
         Self {
             token_type,
             literal: literal.to_string(),
@@ -127,12 +127,14 @@ mod tests {
 
     #[test]
     fn test_next_token() {
-        let content = r##"[_QWERTY] = LAYOUT(
+        let content = r##"// [_QWERTY] = LAYOUT(
   KC_ESC  , KC_Q , _____ , KC_E 
   ),"##
             .to_string();
 
         let mut expected_types: Vec<Token> = vec![
+            Token::new(TokenType::Unknown, "/"),
+            Token::new(TokenType::Unknown, "/"),
             Token::new(TokenType::LSqBrace, "["),
             Token::new(TokenType::Unknown, "_QWERTY"),
             Token::new(TokenType::RSqBrace, "]"),

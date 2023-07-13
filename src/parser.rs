@@ -1,16 +1,16 @@
 use crate::{
-    ast::{Statement, AST},
+    ast::{KeymapStatement, LayoutStatement, StatementEnum, AST},
     lexer::{Lexer, Token, TokenType},
 };
 
-struct Parser {
+pub struct Parser {
     lexer: Lexer,
     curr_token: Token,
     next_token: Token,
 }
 
 impl Parser {
-    fn new(mut lexer: Lexer) -> Self {
+    pub fn new(mut lexer: Lexer) -> Self {
         let curr_token = lexer.next_token();
         let next_token = lexer.next_token();
 
@@ -26,7 +26,7 @@ impl Parser {
         self.next_token = self.lexer.next_token();
     }
 
-    fn parse(&mut self) -> AST {
+    pub fn parse(&mut self) -> AST {
         let mut ast = AST::new();
 
         while self.curr_token.token_type != TokenType::EOF {
@@ -39,32 +39,95 @@ impl Parser {
         ast
     }
 
-    fn parse_statement(&mut self) -> Option<Statement> {
+    fn parse_statement(&mut self) -> Option<StatementEnum> {
         match self.curr_token.token_type {
             TokenType::LParen => None,
             TokenType::RParen => None,
-            TokenType::LSqBrace => None,
+            TokenType::LSqBrace => self.parse_keymap_statement(),
             TokenType::RSqBrace => None,
             TokenType::Equals => None,
             TokenType::Comma => None,
-            TokenType::Layout => self.parser_layout_statement(),
+            TokenType::Layout => None,
             TokenType::Blank => None,
             TokenType::Unknown => None,
             TokenType::EOF => None,
         }
     }
 
-    fn parser_layout_statement(&self) -> Option<Statement> {
+    fn parse_keymap_statement(&mut self) -> Option<StatementEnum> {
+        if self.next_token.token_type != TokenType::Unknown {
+            return None;
+        }
+
+        self.next_token(); // Curr: _QWERTY
+
+        if self.next_token.token_type != TokenType::RSqBrace {
+            return None;
+        }
+
+        let token = self.curr_token.clone();
+
+        self.next_token(); // Curr: ]
+
+        let layout_statement = match self.parse_layout_statement() {
+            Some(x) => x,
+            None => return None,
+        };
+
+        let statement = KeymapStatement::new(token, layout_statement);
+        let statement = StatementEnum::KeymapStatement(statement);
+        Some(statement)
+    }
+
+    fn parse_layout_statement(&mut self) -> Option<LayoutStatement> {
+        if self.next_token.token_type != TokenType::Equals {
+            return None;
+        }
+
+        self.next_token(); // Curr: =
+
+        if self.next_token.token_type != TokenType::Layout {
+            return None;
+        }
+
+        self.next_token(); // Curr: Layout
+
         if self.next_token.token_type != TokenType::LParen {
             return None;
         }
 
-        Some(Statement::new("Layout"))
+        let token = self.curr_token.clone();
+
+        self.next_token(); // Curr: (
+
+        let keys = self.parse_layout_keys();
+        let statement = LayoutStatement::new(token, keys);
+
+        return Some(statement);
+    }
+
+    fn parse_layout_keys(&mut self) -> Vec<String> {
+        self.next_token(); // Curr: KC_ESC
+
+        let mut keys: Vec<String> = vec![];
+        while self.curr_token.token_type != TokenType::RParen {
+            match self.curr_token.token_type {
+                TokenType::Unknown => keys.push(self.curr_token.literal.clone()),
+                TokenType::Blank => keys.push("".to_string()),
+                _ => {}
+            };
+
+            self.next_token();
+        }
+
+        keys
     }
 }
 
 #[cfg(test)]
 mod tests {
+    use crate::ast::LayoutStatement;
+
     // Note this useful idiom: importing names from outer (for mod tests) scope.
     use super::*;
 
@@ -81,11 +144,21 @@ mod tests {
         let ast = parser.parse();
 
         assert_eq!(
-            "Layout",
+            &StatementEnum::KeymapStatement(KeymapStatement::new(
+                Token::new(TokenType::Unknown, "_QWERTY"),
+                LayoutStatement::new(
+                    Token::new(TokenType::Layout, "LAYOUT",),
+                    vec![
+                        "KC_ESC".to_string(),
+                        "KC_Q".to_string(),
+                        "".to_string(),
+                        "KC_E".to_string()
+                    ]
+                )
+            )),
             ast.statements
                 .get(0)
                 .expect("Failed to find statement in ast")
-                .name
         );
     }
 }
