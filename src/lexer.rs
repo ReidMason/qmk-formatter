@@ -1,6 +1,6 @@
 pub struct Lexer {
     content: Vec<u8>,
-    ch: Option<u8>,
+    ch: u8,
     position: usize,
     read_position: usize,
 }
@@ -11,7 +11,7 @@ impl Lexer {
             content: content.into_bytes(),
             position: 0,
             read_position: 0,
-            ch: Some(0),
+            ch: 0,
         };
 
         lexer.read_char();
@@ -22,18 +22,14 @@ impl Lexer {
     pub fn next_token(&mut self) -> TokenType {
         self.skip_whitespace();
 
-        let ch = match self.ch {
-            Some(x) => x,
-            None => return TokenType::EOF,
-        };
-
-        let token: TokenType = match ch {
+        let token: TokenType = match self.ch {
             b'(' => TokenType::LParen(self.position),
             b')' => TokenType::RParen(self.position),
             b'[' => TokenType::LSqBrace(self.position),
             b']' => TokenType::RSqBrace(self.position),
             b',' => TokenType::Comma(self.position),
             b'=' => TokenType::Equals(self.position),
+            0 => TokenType::EOF,
             _ => {
                 let position = self.position;
                 let identifier = self.read_identifier();
@@ -54,12 +50,8 @@ impl Lexer {
     }
 
     fn read_identifier(&mut self) -> String {
-        // TODO: Remove the unwraps here
         let pos = self.position;
-        while pos == self.position
-            || self.ch.unwrap().is_ascii_alphanumeric()
-            || self.ch == Some(b'_')
-        {
+        while pos == self.position || self.ch.is_ascii_alphanumeric() || self.ch == b'_' {
             self.read_char();
         }
 
@@ -67,22 +59,14 @@ impl Lexer {
     }
 
     fn read_char(&mut self) {
-        if self.read_position >= self.content.len() {
-            self.ch = None;
-        } else {
-            self.ch = Some(self.content[self.read_position]);
-        }
+        self.ch = *self.content.get(self.read_position).unwrap_or(&0);
 
         self.position = self.read_position;
         self.read_position += 1;
     }
 
     fn skip_whitespace(&mut self) {
-        while self.ch == Some(b' ')
-            || self.ch == Some(b'\t')
-            || self.ch == Some(b'\n')
-            || self.ch == Some(b'\r')
-        {
+        while self.ch == b' ' || self.ch == b'\t' || self.ch == b'\n' || self.ch == b'\r' {
             self.read_char();
         }
     }
