@@ -60,7 +60,6 @@ impl Parser {
             _ => return None,
         }
 
-        println!("Thing");
         self.next_token(); // Curr: _QWERTY
 
         match self.next_token {

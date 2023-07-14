@@ -67,11 +67,10 @@ impl Lexer {
     }
 
     fn read_char(&mut self) {
-        // let thing = String::from_utf8(vec![]).unwrap();
         if self.read_position >= self.content.len() {
             self.ch = None;
         } else {
-            self.ch = Some(self.content[self.read_position]); // self.content.chars().nth(self.read_position);
+            self.ch = Some(self.content[self.read_position]);
         }
 
         self.position = self.read_position;
