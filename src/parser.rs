@@ -49,14 +49,14 @@ impl Parser {
             TokenType::Comma(..) => None,
             TokenType::Layout(..) => None,
             TokenType::Blank(..) => None,
-            TokenType::Unknown(..) => None,
+            TokenType::Ident(..) => None,
             TokenType::EOF => None,
         }
     }
 
     fn parse_keymap_statement(&mut self) -> Option<StatementEnum> {
         match self.next_token {
-            TokenType::Unknown(..) => {}
+            TokenType::Ident(..) => {}
             _ => return None,
         }
 
@@ -121,7 +121,7 @@ impl Parser {
             _ => true,
         } {
             match &self.curr_token {
-                TokenType::Unknown(_, x) => keys.push(x.to_string()),
+                TokenType::Ident(_, x) => keys.push(x.to_string()),
                 TokenType::Blank(..) => keys.push("".to_string()),
                 _ => {}
             };
@@ -154,7 +154,7 @@ mod tests {
 
         assert_eq!(
             &StatementEnum::KeymapStatement(KeymapStatement::new(
-                TokenType::Unknown(1, "_QWERTY".to_string()),
+                TokenType::Ident(1, "_QWERTY".to_string()),
                 LayoutStatement::new(
                     TokenType::Layout(12),
                     vec![

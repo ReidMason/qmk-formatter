@@ -40,7 +40,7 @@ impl Lexer {
                     return TokenType::Blank(position);
                 }
 
-                return TokenType::Unknown(position, identifier);
+                return TokenType::Ident(position, identifier);
             }
         };
 
@@ -82,7 +82,7 @@ pub enum TokenType {
     Comma(usize),
     Layout(usize),
     Blank(usize),
-    Unknown(usize, String),
+    Ident(usize, String),
     EOF,
 }
 
@@ -100,21 +100,21 @@ mod tests {
             .to_string();
 
         let mut expected_types: Vec<TokenType> = vec![
-            TokenType::Unknown(0, "/".to_string()),
-            TokenType::Unknown(1, "/".to_string()),
+            TokenType::Ident(0, "/".to_string()),
+            TokenType::Ident(1, "/".to_string()),
             TokenType::LSqBrace(12),
-            TokenType::Unknown(13, "_QWERTY".to_string()),
+            TokenType::Ident(13, "_QWERTY".to_string()),
             TokenType::RSqBrace(20),
             TokenType::Equals(22),
             TokenType::Layout(24),
             TokenType::LParen(30),
-            TokenType::Unknown(34, "KC_ESC".to_string()),
+            TokenType::Ident(34, "KC_ESC".to_string()),
             TokenType::Comma(42),
-            TokenType::Unknown(44, "KC_Q".to_string()),
+            TokenType::Ident(44, "KC_Q".to_string()),
             TokenType::Comma(49),
             TokenType::Blank(51),
             TokenType::Comma(57),
-            TokenType::Unknown(59, "KC_E".to_string()),
+            TokenType::Ident(59, "KC_E".to_string()),
             TokenType::RParen(67),
             TokenType::Comma(68),
         ];
