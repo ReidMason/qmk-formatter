@@ -299,7 +299,7 @@ DELETE THIS LINE TO UNCOMMENT (2/2) */
         println!("\n\nKeymap: {}", keymap.token.literal);
 
         for key in keymap.layout_statement.keys {
-            print!("{}, ", key);
+            print!("{} ", key);
         }
     }
 }

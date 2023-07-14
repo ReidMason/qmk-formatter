@@ -145,9 +145,9 @@ mod tests {
 
         assert_eq!(
             &StatementEnum::KeymapStatement(KeymapStatement::new(
-                Token::new(TokenType::Unknown, "_QWERTY"),
+                Token::new(TokenType::Unknown, "_QWERTY", 1),
                 LayoutStatement::new(
-                    Token::new(TokenType::Layout, "LAYOUT",),
+                    Token::new(TokenType::Layout, "LAYOUT", 12),
                     vec![
                         "KC_ESC".to_string(),
                         "KC_Q".to_string(),
