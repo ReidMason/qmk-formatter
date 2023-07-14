@@ -1,21 +1,22 @@
 use std::fmt;
 
 pub struct Lexer {
-    content: String,
-    ch: Option<char>,
+    content: Vec<u8>,
+    ch: Option<u8>,
     position: usize,
     read_position: usize,
 }
 
 impl Lexer {
     pub fn new(content: String) -> Self {
-        let ch = content.chars().next();
+        let content = content.into_bytes();
+        let ch = content[0];
 
         Self {
             content,
             position: 0,
             read_position: 1,
-            ch,
+            ch: Some(ch),
         }
     }
 
@@ -28,12 +29,12 @@ impl Lexer {
         };
 
         let token: Token = match ch {
-            '(' => Token::new(TokenType::LParen, &ch.to_string(), self.position),
-            ')' => Token::new(TokenType::RParen, &ch.to_string(), self.position),
-            '[' => Token::new(TokenType::LSqBrace, &ch.to_string(), self.position),
-            ']' => Token::new(TokenType::RSqBrace, &ch.to_string(), self.position),
-            ',' => Token::new(TokenType::Comma, &ch.to_string(), self.position),
-            '=' => Token::new(TokenType::Equals, &ch.to_string(), self.position),
+            b'(' => Token::new(TokenType::LParen, &ch.to_string(), self.position),
+            b')' => Token::new(TokenType::RParen, &ch.to_string(), self.position),
+            b'[' => Token::new(TokenType::LSqBrace, &ch.to_string(), self.position),
+            b']' => Token::new(TokenType::RSqBrace, &ch.to_string(), self.position),
+            b',' => Token::new(TokenType::Comma, &ch.to_string(), self.position),
+            b'=' => Token::new(TokenType::Equals, &ch.to_string(), self.position),
             _ => {
                 let position = self.position;
                 let identifier = self.read_identifier();
@@ -56,7 +57,10 @@ impl Lexer {
     fn read_identifier(&mut self) -> String {
         // TODO: Remove the unwraps here
         let mut identifier = "".to_string();
-        while identifier.is_empty() || self.ch.unwrap().is_alphanumeric() || self.ch == Some('_') {
+        while identifier.is_empty()
+            || self.ch.unwrap().is_ascii_alphanumeric()
+            || self.ch == Some(b'_')
+        {
             identifier.push_str(&self.ch.unwrap().to_string());
             self.read_char();
         }
@@ -65,16 +69,22 @@ impl Lexer {
     }
 
     fn read_char(&mut self) {
-        self.ch = self.content.chars().nth(self.read_position);
+        // let thing = String::from_utf8(vec![]).unwrap();
+        if self.read_position >= self.content.len() {
+            self.ch = None;
+        } else {
+            self.ch = Some(self.content[self.read_position]); // self.content.chars().nth(self.read_position);
+        }
+
         self.position = self.read_position;
         self.read_position += 1;
     }
 
     fn skip_whitespace(&mut self) {
-        while self.ch == Some(' ')
-            || self.ch == Some('\t')
-            || self.ch == Some('\n')
-            || self.ch == Some('\r')
+        while self.ch == Some(b' ')
+            || self.ch == Some(b'\t')
+            || self.ch == Some(b'\n')
+            || self.ch == Some(b'\r')
         {
             self.read_char();
         }
