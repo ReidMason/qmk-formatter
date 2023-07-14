@@ -296,7 +296,7 @@ DELETE THIS LINE TO UNCOMMENT (2/2) */
             ast::StatementEnum::KeymapStatement(x) => x,
         };
 
-        println!("\n\nKeymap: {}", keymap.token.literal);
+        println!("\n\nKeymap: {:?}", keymap.token);
 
         for key in keymap.layout_statement.keys {
             print!("{} ", key);

@@ -1,12 +1,12 @@
 use crate::{
     ast::{KeymapStatement, LayoutStatement, StatementEnum, AST},
-    lexer::{Lexer, Token, TokenType},
+    lexer::{Lexer, TokenType},
 };
 
 pub struct Parser {
     lexer: Lexer,
-    curr_token: Token,
-    next_token: Token,
+    curr_token: TokenType,
+    next_token: TokenType,
 }
 
 impl Parser {
@@ -29,7 +29,7 @@ impl Parser {
     pub fn parse(&mut self) -> AST {
         let mut ast = AST::new();
 
-        while self.curr_token.token_type != TokenType::EOF {
+        while self.curr_token != TokenType::EOF {
             if let Some(statement) = self.parse_statement() {
                 ast.statements.push(statement);
             }
@@ -40,29 +40,32 @@ impl Parser {
     }
 
     fn parse_statement(&mut self) -> Option<StatementEnum> {
-        match self.curr_token.token_type {
-            TokenType::LParen => None,
-            TokenType::RParen => None,
-            TokenType::LSqBrace => self.parse_keymap_statement(),
-            TokenType::RSqBrace => None,
-            TokenType::Equals => None,
-            TokenType::Comma => None,
-            TokenType::Layout => None,
-            TokenType::Blank => None,
-            TokenType::Unknown => None,
+        match self.curr_token {
+            TokenType::LParen(..) => None,
+            TokenType::RParen(..) => None,
+            TokenType::LSqBrace(..) => self.parse_keymap_statement(),
+            TokenType::RSqBrace(..) => None,
+            TokenType::Equals(..) => None,
+            TokenType::Comma(..) => None,
+            TokenType::Layout(..) => None,
+            TokenType::Blank(..) => None,
+            TokenType::Unknown(..) => None,
             TokenType::EOF => None,
         }
     }
 
     fn parse_keymap_statement(&mut self) -> Option<StatementEnum> {
-        if self.next_token.token_type != TokenType::Unknown {
-            return None;
+        match self.next_token {
+            TokenType::Unknown(..) => {}
+            _ => return None,
         }
 
+        println!("Thing");
         self.next_token(); // Curr: _QWERTY
 
-        if self.next_token.token_type != TokenType::RSqBrace {
-            return None;
+        match self.next_token {
+            TokenType::RSqBrace(..) => {}
+            _ => return None,
         }
 
         let token = self.curr_token.clone();
@@ -80,20 +83,23 @@ impl Parser {
     }
 
     fn parse_layout_statement(&mut self) -> Option<LayoutStatement> {
-        if self.next_token.token_type != TokenType::Equals {
-            return None;
+        match self.next_token {
+            TokenType::Equals(..) => {}
+            _ => return None,
         }
 
         self.next_token(); // Curr: =
 
-        if self.next_token.token_type != TokenType::Layout {
-            return None;
+        match self.next_token {
+            TokenType::Layout(..) => {}
+            _ => return None,
         }
 
         self.next_token(); // Curr: Layout
 
-        if self.next_token.token_type != TokenType::LParen {
-            return None;
+        match self.next_token {
+            TokenType::LParen(..) => {}
+            _ => return None,
         }
 
         let token = self.curr_token.clone();
@@ -110,10 +116,14 @@ impl Parser {
         self.next_token(); // Curr: KC_ESC
 
         let mut keys: Vec<String> = vec![];
-        while self.curr_token.token_type != TokenType::RParen {
-            match self.curr_token.token_type {
-                TokenType::Unknown => keys.push(self.curr_token.literal.clone()),
-                TokenType::Blank => keys.push("".to_string()),
+        // while self.curr_token != TokenType::RParen {
+        while match self.curr_token {
+            TokenType::RParen(..) => false,
+            _ => true,
+        } {
+            match &self.curr_token {
+                TokenType::Unknown(_, x) => keys.push(x.to_string()),
+                TokenType::Blank(..) => keys.push("".to_string()),
                 _ => {}
             };
 
@@ -145,9 +155,9 @@ mod tests {
 
         assert_eq!(
             &StatementEnum::KeymapStatement(KeymapStatement::new(
-                Token::new(TokenType::Unknown, "_QWERTY", 1),
+                TokenType::Unknown(1, "_QWERTY".to_string()),
                 LayoutStatement::new(
-                    Token::new(TokenType::Layout, "LAYOUT", 12),
+                    TokenType::Layout(12),
                     vec![
                         "KC_ESC".to_string(),
                         "KC_Q".to_string(),
