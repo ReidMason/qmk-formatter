@@ -1,7 +1,10 @@
 use lexer::Lexer;
 use parser::Parser;
 
+use crate::formatter::{get_border_name, get_keymap_format, Mark};
+
 mod ast;
+mod formatter;
 mod lexer;
 mod parser;
 
@@ -296,10 +299,92 @@ DELETE THIS LINE TO UNCOMMENT (2/2) */
             ast::StatementEnum::KeymapStatement(x) => x,
         };
 
-        println!("\n\nKeymap: {:?}", keymap.token);
+        let layout: Vec<Vec<Mark>> = vec![
+            vec![
+                Mark::Key,
+                Mark::Key,
+                Mark::Key,
+                Mark::Key,
+                Mark::Key,
+                Mark::Key,
+                Mark::Blank,
+                Mark::Blank,
+                Mark::Blank,
+                Mark::Blank,
+                Mark::Blank,
+                Mark::Key,
+                Mark::Key,
+                Mark::Key,
+                Mark::Key,
+                Mark::Key,
+                Mark::Key,
+            ],
+            vec![
+                Mark::Key,
+                Mark::Key,
+                Mark::Key,
+                Mark::Key,
+                Mark::Key,
+                Mark::Key,
+                Mark::Blank,
+                Mark::Blank,
+                Mark::Blank,
+                Mark::Blank,
+                Mark::Blank,
+                Mark::Key,
+                Mark::Key,
+                Mark::Key,
+                Mark::Key,
+                Mark::Key,
+                Mark::Key,
+            ],
+            vec![
+                Mark::Key,
+                Mark::Key,
+                Mark::Key,
+                Mark::Key,
+                Mark::Key,
+                Mark::Key,
+                Mark::Blank,
+                Mark::Blank,
+                Mark::Blank,
+                Mark::Blank,
+                Mark::Blank,
+                Mark::Key,
+                Mark::Key,
+                Mark::Key,
+                Mark::Key,
+                Mark::Key,
+                Mark::Key,
+            ],
+            vec![
+                Mark::Blank,
+                Mark::Blank,
+                Mark::Blank,
+                Mark::Key,
+                Mark::Key,
+                Mark::Key,
+                Mark::Key,
+                Mark::Key,
+                Mark::Blank,
+                Mark::Key,
+                Mark::Key,
+                Mark::Key,
+                Mark::Key,
+                Mark::Blank,
+                Mark::Blank,
+                Mark::Blank,
+            ],
+        ];
 
-        for key in keymap.layout_statement.keys {
-            print!("{} ", key);
-        }
+        let result = get_keymap_format(keymap, layout);
+        let output: String = result.iter().map(|x| get_border_name(x)).collect();
+        println!("{}", output);
+
+        // println!("\n\nKeymap: {:?}", keymap.token);
+        //
+        // for key in keymap.layout_statement.keys {
+        //     print!("{} ", key);
+        // }
     }
 }

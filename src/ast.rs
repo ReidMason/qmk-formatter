@@ -26,7 +26,7 @@ impl KeymapStatement {
 
 #[derive(Debug, PartialEq)]
 pub struct LayoutStatement {
-    token: TokenType,
+    pub token: TokenType,
     pub keys: Vec<String>,
 }
 
