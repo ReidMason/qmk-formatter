@@ -147,7 +147,7 @@ mod tests {
   ),"##
             .to_string();
 
-        let lexer = Lexer::new(content);
+        let lexer = Lexer::new(&content);
         let mut parser = Parser::new(lexer);
 
         let ast = parser.parse();

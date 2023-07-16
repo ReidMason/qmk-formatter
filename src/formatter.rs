@@ -47,7 +47,7 @@ pub enum M {
 
 type Layout = Vec<Vec<M>>;
 
-pub fn get_keymap_format(keymap: KeymapStatement, layout: Layout) -> Vec<Element> {
+pub fn get_keymap_format(keymap: &KeymapStatement, layout: Layout) -> Vec<Element> {
     // Add an extra blank column on the end to make formatting easier
     let mut layout = layout.clone();
     for row in layout.iter_mut() {
@@ -56,7 +56,7 @@ pub fn get_keymap_format(keymap: KeymapStatement, layout: Layout) -> Vec<Element
 
     let mut output: Vec<Element> = vec![Element::LineStart];
 
-    let keys = keymap.layout_statement.keys;
+    let keys = &keymap.layout_statement.keys;
     let max_width = keys
         .iter()
         .map(|x| x.len())
@@ -99,6 +99,7 @@ pub fn get_keymap_format(keymap: KeymapStatement, layout: Layout) -> Vec<Element
             output.push(filler.clone());
         }
     }
+    output.push(Element::Newline);
 
     // Process keys
     let mut count = 0;
@@ -297,8 +298,13 @@ pub fn get_keymap_format(keymap: KeymapStatement, layout: Layout) -> Vec<Element
     output
 }
 
-fn get_keymap_string(keymap_format: Vec<Element>) -> String {
+pub fn get_keymap_string(keymap_format: Vec<Element>) -> String {
     keymap_format.iter().map(|x| get_border_name(x)).collect()
+}
+
+pub fn insert_keydisplay(content: &str, keymap_start: usize, key_display: String) -> String {
+    let (first, last) = content.split_at(keymap_start);
+    format!("{}\n{}\n{}", first, key_display, last)
 }
 
 #[cfg(test)]
@@ -307,6 +313,26 @@ mod tests {
 
     // Note this useful idiom: importing names from outer (for mod tests) scope.
     use super::*;
+
+    #[test]
+    fn test_key_display() {
+        let keymap = KeymapStatement {
+            token: TokenType::Ident(4932, "_QWERTY".to_string()),
+            layout_statement: LayoutStatement {
+                token: TokenType::Layout(4943),
+                keys: vec!["KC_ESC".to_string()],
+            },
+        };
+
+        let layout: Vec<Vec<M>> = vec![vec![M::K]];
+
+        let result = get_keymap_format(&keymap, layout);
+        let display = get_keymap_string(result);
+
+        let text = "This is before\n[KEYMAP] = ['KC_ESC']\nThis is after";
+        let result = insert_keydisplay(text, 15, display);
+        println!("{}", result)
+    }
 
     #[test]
     fn test_format() {
@@ -446,7 +472,7 @@ mod tests {
                 M::B,
             ],
         ];
-        let result = get_keymap_format(keymap, layout);
+        let result = get_keymap_format(&keymap, layout);
         let expected: Vec<Element> = vec![
             Element::LineStart,
             Element::TopLeft,

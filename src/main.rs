@@ -1,7 +1,10 @@
 use lexer::Lexer;
 use parser::Parser;
 
-use crate::formatter::{get_border_name, get_keymap_format, M};
+use crate::{
+    formatter::{get_keymap_format, get_keymap_string, insert_keydisplay, M},
+    lexer::TokenType,
+};
 
 mod ast;
 mod formatter;
@@ -116,31 +119,12 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
 
 // clang-format off
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
-//    ┌─────────┬───┬───┬──────┬─────┬─────┐                                     ┌─────┬─────┬─────┬───┬───┬──────┐
-//    │   esc   │ q │ w │  e   │  r  │  t  │                                     │  y  │  u  │  i  │ o │ p │ bspc │
-//    ├─────────┼───┼───┼──────┼─────┼─────┤                                     ├─────┼─────┼─────┼───┼───┼──────┤
-//    │ SFT_TAB │ a │ s │  d   │  f  │  g  │                                     │  h  │  j  │  k  │ l │ ; │  '   │
-//    ├─────────┼───┼───┼──────┼─────┼─────┼──────┬────────┐       ┌───────┬─────┼─────┼─────┼─────┼───┼───┼──────┤
-//    │  lctl   │ z │ x │  c   │  v  │  b  │ cPYP │ ADJUST │       │ FKEYS │     │  n  │  m  │  ,  │ . │ / │ rsft │
-//    └─────────┴───┴───┼──────┼─────┼─────┼──────┼────────┤       ├───────┼─────┼─────┼─────┼─────┼───┴───┴──────┘
-//                      │ lalt │ NAV │ SYM │ ent  │  lgui  │       │ rgui  │ spc │ NAV │     │     │               
-//                      └──────┴─────┴─────┴──────┴────────┘       └───────┴─────┴─────┴─────┴─────┘               
 [_QWERTY] = LAYOUT(
   KC_ESC  , KC_Q , KC_W , KC_E    , KC_R , KC_T ,                                                 KC_Y , KC_U    , KC_I    , KC_O   , KC_P    , KC_BSPC ,
   SFT_TAB , KC_A , KC_S , KC_D    , KC_F , KC_G ,                                                 KC_H , KC_J    , KC_K    , KC_L   , KC_SCLN , KC_QUOTE,
   KC_LCTL , KC_Z , KC_X , KC_C    , KC_V , KC_B , KC_CPYP , ADJUST  ,         FKEYS   , _______ , KC_N , KC_M    , KC_COMM , KC_DOT , KC_SLSH , KC_RSFT ,
                           KC_LALT , NAV  , SYM  , KC_ENT  , KC_LGUI ,         KC_RGUI , KC_SPC  , NAV  , _______ , _______                              
 ),
-
-//    ┌─────┬──────┬──────┬──────┬──────┬─────┐                                ┌──────┬──────┬─────┬──────┬─────┬─────┐
-//    │     │      │      │      │      │     │                                │      │      │     │      │     │ del │
-//    ├─────┼──────┼──────┼──────┼──────┼─────┤                                ├──────┼──────┼─────┼──────┼─────┼─────┤
-//    │     │ lgui │ lalt │ lctl │ lsft │     │                                │ left │ down │ up  │ rght │     │     │
-//    ├─────┼──────┼──────┼──────┼──────┼─────┼─────┬──────┐       ┌─────┬─────┼──────┼──────┼─────┼──────┼─────┼─────┤
-//    │     │      │      │      │      │     │     │ sCRL │       │     │     │      │      │     │      │     │     │
-//    └─────┴──────┴──────┼──────┼──────┼─────┼─────┼──────┤       ├─────┼─────┼──────┼──────┼─────┼──────┴─────┴─────┘
-//                        │      │      │     │     │      │       │     │     │      │      │     │                   
-//                        └──────┴──────┴─────┴─────┴──────┘       └─────┴─────┴──────┴──────┴─────┘                   
 [_NAV] = LAYOUT(
   _______ , _______ , _______ , _______ , _______ , _______ ,                                                 _______ , _______ , _______ , _______ , _______ , KC_DEL ,
   _______ , KC_LGUI , KC_LALT , KC_LCTL , KC_LSFT , _______ ,                                                 KC_LEFT , KC_DOWN , KC_UP   , KC_RGHT , _______ , _______,
@@ -148,15 +132,6 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
                                 _______ , _______ , _______ , _______ , _______ ,         _______ , _______ , _______ , _______ , _______                              
 ),
 
-//    ┌─────┬───┬───┬──────┬─────┬─────┐                               ┌─────┬─────┬─────┬─────┬─────┬─────┐
-//    │  `  │ 1 │ 2 │  3   │  4  │  5  │                               │  6  │  7  │  8  │  9  │  0  │  =  │
-//    ├─────┼───┼───┼──────┼─────┼─────┤                               ├─────┼─────┼─────┼─────┼─────┼─────┤
-//    │     │ ! │ @ │ HASH │  $  │  -  │                               │  _  │  (  │  )  │  [  │  ]  │  \  │
-//    ├─────┼───┼───┼──────┼─────┼─────┼─────┬─────┐       ┌─────┬─────┼─────┼─────┼─────┼─────┼─────┼─────┤
-//    │     │ \ │ * │  &   │  %  │  +  │     │     │       │     │     │     │  {  │  }  │     │     │     │
-//    └─────┴───┴───┼──────┼─────┼─────┼─────┼─────┤       ├─────┼─────┼─────┼─────┼─────┼─────┴─────┴─────┘
-//                  │      │     │     │     │     │       │     │     │     │     │     │                  
-//                  └──────┴─────┴─────┴─────┴─────┘       └─────┴─────┴─────┴─────┴─────┘                  
 [_SYM] = LAYOUT(
   KC_GRV  , KC_1    , KC_2    , KC_3    , KC_4    , KC_5    ,                                                 KC_6    , KC_7    , KC_8    , KC_9    , KC_0    , KC_EQL ,
   _______ , KC_EXLM , KC_AT   , HASH    , KC_DLR  , KC_MINS ,                                                 KC_UNDS , KC_LPRN , KC_RPRN , KC_LBRC , KC_RBRC , KC_BSLS,
@@ -164,15 +139,6 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
                                 _______ , _______ , _______ , _______ , _______ ,         _______ , _______ , _______ , _______ , _______                              
 ),
 
-//    ┌─────┬────┬─────┬─────┬─────┬─────┐                               ┌─────┬──────┬──────┬──────┬──────┬─────┐
-//    │     │ f9 │ f10 │ f11 │ f12 │     │                               │     │      │      │      │      │     │
-//    ├─────┼────┼─────┼─────┼─────┼─────┤                               ├─────┼──────┼──────┼──────┼──────┼─────┤
-//    │     │ f5 │ f6  │ f7  │ f8  │     │                               │     │ rsft │ rctl │ lalt │ rgui │     │
-//    ├─────┼────┼─────┼─────┼─────┼─────┼─────┬─────┐       ┌─────┬─────┼─────┼──────┼──────┼──────┼──────┼─────┤
-//    │     │ f1 │ f2  │ f3  │ f4  │     │     │     │       │     │     │     │      │      │      │      │     │
-//    └─────┴────┴─────┼─────┼─────┼─────┼─────┼─────┤       ├─────┼─────┼─────┼──────┼──────┼──────┴──────┴─────┘
-//                     │     │     │     │     │     │       │     │     │     │      │      │                    
-//                     └─────┴─────┴─────┴─────┴─────┘       └─────┴─────┴─────┴──────┴──────┘                    
 [_FUNCTION] = LAYOUT(
   _______ , KC_F9 , KC_F10 , KC_F11  , KC_F12  , _______ ,                                                 _______ , _______ , _______ , _______ , _______ , _______,
   _______ , KC_F5 , KC_F6  , KC_F7   , KC_F8   , _______ ,                                                 _______ , KC_RSFT , KC_RCTL , KC_LALT , KC_RGUI , _______,
@@ -180,15 +146,6 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
                              _______ , _______ , _______ , _______ , _______ ,         _______ , _______ , _______ , _______ , _______                              
 ),
 
-//    ┌─────┬─────┬─────┬─────┬─────┬─────┐                               ┌─────────┬─────────┬─────────┬─────────┬──────────┬─────┐
-//    │     │     │     │     │     │     │                               │         │         │         │         │          │     │
-//    ├─────┼─────┼─────┼─────┼─────┼─────┤                               ├─────────┼─────────┼─────────┼─────────┼──────────┼─────┤
-//    │     │     │     │     │     │     │                               │ RGB_TOG │ RGB_SAI │ RGB_HUI │ RGB_VAI │ RGB_MOD  │     │
-//    ├─────┼─────┼─────┼─────┼─────┼─────┼─────┬─────┐       ┌─────┬─────┼─────────┼─────────┼─────────┼─────────┼──────────┼─────┤
-//    │     │     │     │     │     │     │     │     │       │     │     │         │ RGB_SAD │ RGB_HUD │ RGB_VAD │ RGB_RMOD │     │
-//    └─────┴─────┴─────┼─────┼─────┼─────┼─────┼─────┤       ├─────┼─────┼─────────┼─────────┼─────────┼─────────┴──────────┴─────┘
-//                      │     │     │     │     │     │       │     │     │         │         │         │                           
-//                      └─────┴─────┴─────┴─────┴─────┘       └─────┴─────┴─────────┴─────────┴─────────┘                           
 [_ADJUST] = LAYOUT(
   _______ , _______ , _______ , _______ , _______ , _______ ,                                                 _______ , _______ , _______ , _______ , _______  , _______,
   _______ , _______ , _______ , _______ , _______ , _______ ,                                                 RGB_TOG , RGB_SAI , RGB_HUI , RGB_VAI , RGB_MOD  , _______,
@@ -290,9 +247,12 @@ bool encoder_update_user(uint8_t index, bool clockwise) {
 DELETE THIS LINE TO UNCOMMENT (2/2) */
 "##.to_string();
 
-    let lexer = Lexer::new(content);
+    let lexer = Lexer::new(&content);
     let mut parser = Parser::new(lexer);
 
+    let mut output = content.clone();
+
+    let mut offset = 0;
     let ast = parser.parse();
     for statement in ast.statements {
         let keymap = match statement {
@@ -377,14 +337,18 @@ DELETE THIS LINE TO UNCOMMENT (2/2) */
             ],
         ];
 
-        let result = get_keymap_format(keymap, layout);
-        let output: String = result.iter().map(|x| get_border_name(x)).collect();
-        println!("{}", output);
+        let result = get_keymap_format(&keymap, layout);
 
-        // println!("\n\nKeymap: {:?}", keymap.token);
-        //
-        // for key in keymap.layout_statement.keys {
-        //     print!("{} ", key);
-        // }
+        let display = get_keymap_string(result);
+        if let TokenType::Ident(pos, _) = keymap.token {
+            println!("{}", pos);
+            let display_len = display.len();
+            output = insert_keydisplay(&output, pos + offset - 1, display);
+            offset += display_len + 2;
+        }
+    }
+
+    for line in output.split("\n") {
+        println!("{}", line);
     }
 }

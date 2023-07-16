@@ -6,9 +6,9 @@ pub struct Lexer {
 }
 
 impl Lexer {
-    pub fn new(content: String) -> Self {
+    pub fn new(content: &str) -> Self {
         let mut lexer = Self {
-            content: content.into_bytes(),
+            content: content.to_string().into_bytes(),
             position: 0,
             read_position: 0,
             ch: 0,
@@ -119,7 +119,7 @@ mod tests {
             TokenType::Comma(68),
         ];
 
-        let mut lexer = Lexer::new(content);
+        let mut lexer = Lexer::new(&content);
 
         let mut token = lexer.next_token();
         let mut counter = 1;
