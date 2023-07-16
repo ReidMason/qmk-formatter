@@ -294,9 +294,11 @@ pub fn get_keymap_format(keymap: KeymapStatement, layout: Layout) -> Vec<Element
         }
     }
 
-    // let output: String = output.iter().map(|x| get_border_name(x)).collect();
-
     output
+}
+
+fn get_keymap_string(keymap_format: Vec<Element>) -> String {
+    keymap_format.iter().map(|x| get_border_name(x)).collect()
 }
 
 #[cfg(test)]
