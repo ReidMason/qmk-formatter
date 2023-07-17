@@ -50,6 +50,7 @@ impl Parser {
             TokenType::Layout(..) => None,
             TokenType::Blank(..) => None,
             TokenType::Ident(..) => None,
+            TokenType::Comment(..) => None,
             TokenType::EOF => None,
         }
     }

@@ -29,6 +29,15 @@ impl Lexer {
             b']' => TokenType::RSqBrace(self.position),
             b',' => TokenType::Comma(self.position),
             b'=' => TokenType::Equals(self.position),
+            b'/' => {
+                let position = self.position;
+                if self.peek_char() == b'/' {
+                    let line = self.read_to_end_of_line();
+                    return TokenType::Comment(position, self.position, line);
+                }
+
+                return TokenType::Ident(self.position, self.ch.to_string());
+            }
             0 => TokenType::EOF,
             _ => {
                 let position = self.position;
@@ -49,6 +58,15 @@ impl Lexer {
         return token;
     }
 
+    fn read_to_end_of_line(&mut self) -> String {
+        let pos = self.position;
+        while pos == self.position || self.ch != b'\n' {
+            self.read_char();
+        }
+
+        String::from_utf8_lossy(&self.content[pos..self.position]).to_string()
+    }
+
     fn read_identifier(&mut self) -> String {
         let pos = self.position;
         while pos == self.position || self.ch.is_ascii_alphanumeric() || self.ch == b'_' {
@@ -63,6 +81,14 @@ impl Lexer {
 
         self.position = self.read_position;
         self.read_position += 1;
+    }
+
+    fn peek_char(&self) -> u8 {
+        if self.position >= self.content.len() {
+            return 0;
+        }
+
+        self.content[self.position]
     }
 
     fn skip_whitespace(&mut self) {
@@ -83,6 +109,7 @@ pub enum TokenType {
     Layout(usize),
     Blank(usize),
     Ident(usize, String),
+    Comment(usize, usize, String),
     EOF,
 }
 
@@ -93,30 +120,29 @@ mod tests {
 
     #[test]
     fn test_next_token() {
-        let content = r##"// 
+        let content = r##"// testing
         [_QWERTY] = LAYOUT(
   KC_ESC  , KC_Q , _____ , KC_E 
   ),"##
             .to_string();
 
         let mut expected_types: Vec<TokenType> = vec![
-            TokenType::Ident(0, "/".to_string()),
-            TokenType::Ident(1, "/".to_string()),
-            TokenType::LSqBrace(12),
-            TokenType::Ident(13, "_QWERTY".to_string()),
-            TokenType::RSqBrace(20),
-            TokenType::Equals(22),
-            TokenType::Layout(24),
-            TokenType::LParen(30),
-            TokenType::Ident(34, "KC_ESC".to_string()),
-            TokenType::Comma(42),
-            TokenType::Ident(44, "KC_Q".to_string()),
+            TokenType::Comment(0, 10, "// testing".to_string()),
+            TokenType::LSqBrace(19),
+            TokenType::Ident(20, "_QWERTY".to_string()),
+            TokenType::RSqBrace(27),
+            TokenType::Equals(29),
+            TokenType::Layout(31),
+            TokenType::LParen(37),
+            TokenType::Ident(41, "KC_ESC".to_string()),
             TokenType::Comma(49),
-            TokenType::Blank(51),
-            TokenType::Comma(57),
-            TokenType::Ident(59, "KC_E".to_string()),
-            TokenType::RParen(67),
-            TokenType::Comma(68),
+            TokenType::Ident(51, "KC_Q".to_string()),
+            TokenType::Comma(56),
+            TokenType::Blank(58),
+            TokenType::Comma(64),
+            TokenType::Ident(66, "KC_E".to_string()),
+            TokenType::RParen(74),
+            TokenType::Comma(75),
         ];
 
         let mut lexer = Lexer::new(&content);
