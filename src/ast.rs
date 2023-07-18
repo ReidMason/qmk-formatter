@@ -7,6 +7,7 @@ pub struct AST {
 #[derive(Debug, PartialEq)]
 pub enum StatementEnum {
     KeymapStatement(KeymapStatement),
+    Keymaps,
 }
 
 #[derive(Debug, PartialEq)]

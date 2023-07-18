@@ -51,12 +51,105 @@ impl Parser {
             TokenType::Blank(..) => None,
             TokenType::Ident(..) => None,
             TokenType::Comment(..) => None,
-            TokenType::EOF => None,
-            TokenType::Const(_) => None,
+            TokenType::Const(_) => self.parse_assignment(),
             TokenType::Progmem(_) => None,
             TokenType::LBrace(_) => None,
             TokenType::RBrace(_) => None,
+            TokenType::EOF => None,
         }
+    }
+
+    fn parse_assignment(&mut self) -> Option<StatementEnum> {
+        match &self.next_token {
+            TokenType::Ident(_, x) if x == "uint16_t" => {}
+            _ => return None,
+        }
+
+        self.next_token(); // Curr: PROGMEM
+
+        match self.next_token {
+            TokenType::Progmem(..) => {}
+            _ => return None,
+        }
+
+        self.next_token(); // Curr: keymaps
+
+        match &self.next_token {
+            TokenType::Ident(_, x) if x == "keymaps" => {}
+            _ => return None,
+        }
+
+        self.next_token(); // Curr: [
+
+        match self.next_token {
+            TokenType::LSqBrace(..) => {}
+            _ => return None,
+        }
+
+        self.next_token(); // Curr: ]
+
+        match self.next_token {
+            TokenType::RSqBrace(..) => {}
+            _ => return None,
+        }
+
+        self.next_token(); // Curr: [
+
+        match self.next_token {
+            TokenType::LSqBrace(..) => {}
+            _ => return None,
+        }
+
+        self.next_token(); // Curr: MATRIX_ROWS
+
+        match &self.next_token {
+            TokenType::Ident(_, x) if x == "MATRIX_ROWS" => {}
+            _ => return None,
+        }
+
+        self.next_token(); // Curr: ]
+
+        match self.next_token {
+            TokenType::RSqBrace(..) => {}
+            _ => return None,
+        }
+
+        self.next_token(); // Curr: [
+
+        match self.next_token {
+            TokenType::LSqBrace(..) => {}
+            _ => return None,
+        }
+
+        self.next_token(); // Curr: MATRIX_COLS
+
+        match &self.next_token {
+            TokenType::Ident(_, x) if x == "MATRIX_COLS" => {}
+            _ => return None,
+        }
+
+        self.next_token(); // Curr: ]
+
+        match self.next_token {
+            TokenType::RSqBrace(..) => {}
+            _ => return None,
+        }
+
+        self.next_token(); // Curr: =
+
+        match self.next_token {
+            TokenType::Equals(..) => {}
+            _ => return None,
+        }
+
+        self.next_token(); // Curr: {
+
+        match self.next_token {
+            TokenType::LBrace(..) => {}
+            _ => return None,
+        }
+
+        return Some(StatementEnum::Keymaps);
     }
 
     fn parse_keymap_statement(&mut self) -> Option<StatementEnum> {
@@ -170,6 +263,24 @@ mod tests {
                     ]
                 )
             )),
+            ast.statements
+                .get(0)
+                .expect("Failed to find statement in ast")
+        );
+    }
+
+    #[test]
+    fn test_parse_keymap_init() {
+        let content =
+            r##"const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {"##.to_string();
+
+        let lexer = Lexer::new(&content);
+        let mut parser = Parser::new(lexer);
+
+        let ast = parser.parse();
+
+        assert_eq!(
+            &StatementEnum::Keymaps,
             ast.statements
                 .get(0)
                 .expect("Failed to find statement in ast")
