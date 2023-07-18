@@ -52,6 +52,10 @@ impl Parser {
             TokenType::Ident(..) => None,
             TokenType::Comment(..) => None,
             TokenType::EOF => None,
+            TokenType::Const(_) => None,
+            TokenType::Progmem(_) => None,
+            TokenType::LBrace(_) => None,
+            TokenType::RBrace(_) => None,
         }
     }
 
