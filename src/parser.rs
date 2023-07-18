@@ -149,13 +149,38 @@ impl Parser {
             _ => return None,
         }
 
-        return Some(StatementEnum::Keymaps);
+        let mut keymaps: Vec<KeymapStatement> = vec![];
+        while match self.next_token {
+            TokenType::RBrace(..) => false,
+            _ => true,
+        } {
+            self.next_token();
+
+            match self.next_token {
+                TokenType::LSqBrace(..) => {
+                    self.next_token();
+                    match self.parse_keymap_statement() {
+                        Some(x) => match x {
+                            StatementEnum::KeymapStatement(x) => keymaps.push(x),
+                            StatementEnum::Keymaps(_) => {}
+                        },
+                        None => {}
+                    }
+                }
+                _ => {}
+            }
+        }
+
+        return Some(StatementEnum::Keymaps(keymaps));
     }
 
     fn parse_keymap_statement(&mut self) -> Option<StatementEnum> {
         match self.next_token {
             TokenType::Ident(..) => {}
-            _ => return None,
+            _ => {
+                println!("{:?}", self.next_token);
+                return None;
+            }
         }
 
         self.next_token(); // Curr: _QWERTY
@@ -271,8 +296,15 @@ mod tests {
 
     #[test]
     fn test_parse_keymap_init() {
-        let content =
-            r##"const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {"##.to_string();
+        let content = r##"const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
+                [_QWERTY] = LAYOUT(
+  KC_ESC  , KC_Q , _____ , KC_E 
+  ),
+                [_SYM] = LAYOUT(
+  KC_ESC  , KC_Q , _____ , KC_E 
+  ),
+  }"##
+        .to_string();
 
         let lexer = Lexer::new(&content);
         let mut parser = Parser::new(lexer);
@@ -280,7 +312,32 @@ mod tests {
         let ast = parser.parse();
 
         assert_eq!(
-            &StatementEnum::Keymaps,
+            &StatementEnum::Keymaps(vec![
+                KeymapStatement::new(
+                    TokenType::Ident(80, "_QWERTY".to_string()),
+                    LayoutStatement::new(
+                        TokenType::Layout(91),
+                        vec![
+                            "KC_ESC".to_string(),
+                            "KC_Q".to_string(),
+                            "".to_string(),
+                            "KC_E".to_string()
+                        ]
+                    )
+                ),
+                KeymapStatement::new(
+                    TokenType::Ident(154, "_SYM".to_string()),
+                    LayoutStatement::new(
+                        TokenType::Layout(162),
+                        vec![
+                            "KC_ESC".to_string(),
+                            "KC_Q".to_string(),
+                            "".to_string(),
+                            "KC_E".to_string()
+                        ]
+                    )
+                )
+            ]),
             ast.statements
                 .get(0)
                 .expect("Failed to find statement in ast")
