@@ -43,13 +43,11 @@ impl Lexer {
                 let position = self.position;
                 let identifier = self.read_identifier();
 
-                if identifier == "LAYOUT" {
-                    return TokenType::Layout(position);
-                } else if identifier.replace("_", "").is_empty() {
-                    return TokenType::Blank(position);
-                }
-
-                return TokenType::Ident(position, identifier);
+                return match identifier {
+                    _ if identifier == "LAYOUT".to_string() => TokenType::Layout(position),
+                    _ if identifier.replace("_", "").is_empty() => TokenType::Blank(position),
+                    _ => TokenType::Ident(position, identifier),
+                };
             }
         };
 
