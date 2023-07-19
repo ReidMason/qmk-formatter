@@ -13,7 +13,6 @@ use crate::{
 };
 
 mod ast;
-mod data;
 mod formatter;
 mod lexer;
 mod parser;

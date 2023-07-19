@@ -324,8 +324,8 @@ mod tests {
 
         assert_eq!(
             &StatementEnum::Keymaps(
-                0,
-                0,
+                61,
+                210,
                 vec![
                     KeymapStatement::new(
                         TokenType::Ident(80, "_QWERTY".to_string()),
