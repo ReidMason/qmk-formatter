@@ -122,7 +122,6 @@ fn get_formatted_file_contents(content: &str) -> String {
     let mut formatting = String::new();
     for statement in ast.statements {
         let (start, end, keymaps) = match statement {
-            // ast::StatementEnum::KeymapStatement(x) => x,
             ast::StatementEnum::KeymapStatement(..) => continue,
             ast::StatementEnum::Keymaps(x, y, z) => (x, y, z),
         };

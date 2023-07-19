@@ -116,11 +116,6 @@ pub fn get_keymap_format(keymap: &KeymapStatement, layout: Layout) -> (Vec<Eleme
                 };
             }
 
-            // let next = match row.get(j + 1) {
-            //     Some(x) => x,
-            //     None => &M::B,
-            // };
-
             match (prev, col) {
                 (M::K, M::K) => output.push(Element::Vertical),
                 (M::K, M::B) => output.push(Element::Vertical),
