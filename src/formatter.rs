@@ -47,7 +47,7 @@ pub enum M {
 
 type Layout = Vec<Vec<M>>;
 
-pub fn get_keymap_format(keymap: &KeymapStatement, layout: Layout) -> Vec<Element> {
+pub fn get_keymap_format(keymap: &KeymapStatement, layout: Layout) -> (Vec<Element>, Vec<Element>) {
     // Add an extra blank column on the end to make formatting easier
     let mut layout = layout.clone();
     for row in layout.iter_mut() {
@@ -55,6 +55,7 @@ pub fn get_keymap_format(keymap: &KeymapStatement, layout: Layout) -> Vec<Elemen
     }
 
     let mut output: Vec<Element> = vec![Element::LineStart];
+    let mut output2: Vec<Element> = vec![];
 
     let keys = &keymap.layout_statement.keys;
     let max_width = keys
@@ -128,12 +129,12 @@ pub fn get_keymap_format(keymap: &KeymapStatement, layout: Layout) -> Vec<Elemen
             };
 
             output.push(Element::Space);
+            output2.push(Element::Space);
 
             let key = match col {
                 M::K => {
                     let key = &keys[count];
                     output.push(Element::Key(key.to_string()));
-                    count += 1;
                     key
                 }
                 M::B => "",
@@ -143,10 +144,42 @@ pub fn get_keymap_format(keymap: &KeymapStatement, layout: Layout) -> Vec<Elemen
                 output.push(Element::Space);
             }
 
+            let key = match col {
+                M::K => {
+                    let key = &keys[count];
+                    count += 1;
+
+                    if !key.is_empty() {
+                        output2.push(Element::Key(key.to_string()));
+                        key
+                    } else {
+                        output2.push(Element::Key("_______".to_string()));
+                        "_______"
+                    }
+                }
+                M::B => "",
+            };
+
+            for _ in key.len()..max_width {
+                output2.push(Element::Space);
+            }
+
             output.push(Element::Space);
+            output2.push(Element::Space);
+            match col {
+                M::K => {
+                    if count < keys.len() {
+                        output2.push(Element::Key(",".to_string()));
+                    } else {
+                        output2.push(Element::Space);
+                    }
+                }
+                _ => output2.push(Element::Space),
+            }
         }
 
         output.push(Element::Newline);
+        output2.push(Element::Newline);
 
         let is_last_row = i < layout.len() - 1;
         if is_last_row {
@@ -295,7 +328,7 @@ pub fn get_keymap_format(keymap: &KeymapStatement, layout: Layout) -> Vec<Elemen
         }
     }
 
-    output
+    (output, output2)
 }
 
 pub fn get_keymap_string(keymap_format: Vec<Element>) -> String {
@@ -326,8 +359,9 @@ mod tests {
 
         let layout: Vec<Vec<M>> = vec![vec![M::K]];
 
-        let result = get_keymap_format(&keymap, layout);
-        let display = get_keymap_string(result);
+        let (display, keymap) = get_keymap_format(&keymap, layout);
+        let display = get_keymap_string(display);
+        let keymap = get_keymap_string(keymap);
 
         let text = "This is before\n[KEYMAP] = ['KC_ESC']\nThis is after";
         let result = insert_keydisplay(text, 15, display);
@@ -472,7 +506,7 @@ mod tests {
             ],
         ];
 
-        let result = get_keymap_format(&keymap, layout);
+        let (result, _) = get_keymap_format(&keymap, layout);
         let expected: Vec<Element> = vec![
             Element::LineStart,
             Element::TopLeft,

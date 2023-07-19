@@ -21,7 +21,6 @@ mod parser;
 fn main() {
     let args: Vec<String> = env::args().collect();
     let filepath = args.get(1).expect("Filepath argument missing");
-    println!("{}", filepath);
 
     let mut file = File::open(&filepath).expect("Failed to open file");
     let mut contents = String::new();
@@ -132,9 +131,10 @@ fn get_formatted_file_contents(content: &str) -> String {
         };
 
         for keymap in keymaps {
-            let result = get_keymap_format(&keymap, layout.clone());
+            let (display, keymap_formatted) = get_keymap_format(&keymap, layout.clone());
 
-            let display = get_keymap_string(result);
+            let display = get_keymap_string(display);
+            let keymap_formatted = get_keymap_string(keymap_formatted);
             formatting += &display;
             formatting += "\n";
 
@@ -145,16 +145,17 @@ fn get_formatted_file_contents(content: &str) -> String {
             };
 
             formatting += "] = LAYOUT(\n";
-            for (i, key) in keymap.layout_statement.keys.iter().enumerate() {
-                formatting += match key {
-                    key if "" == key.trim() => "_______",
-                    key => key,
-                };
-
-                if i < keymap.layout_statement.keys.len() - 1 {
-                    formatting += ",";
-                }
-            }
+            // for (i, key) in keymap.layout_statement.keys.iter().enumerate() {
+            //     formatting += match key {
+            //         key if "" == key.trim() => "_______",
+            //         key => key,
+            //     };
+            //
+            //     if i < keymap.layout_statement.keys.len() - 1 {
+            //         formatting += ",";
+            //     }
+            // }
+            formatting += &keymap_formatted;
 
             formatting += "),";
             formatting += "\n\n";
