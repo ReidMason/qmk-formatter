@@ -331,7 +331,6 @@ mod tests {
 
         let text = "This is before\n[KEYMAP] = ['KC_ESC']\nThis is after";
         let result = insert_keydisplay(text, 15, display);
-        println!("{}", result)
     }
 
     #[test]

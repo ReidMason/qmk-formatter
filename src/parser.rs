@@ -51,7 +51,7 @@ impl Parser {
             TokenType::Blank(..) => None,
             TokenType::Ident(..) => None,
             TokenType::Comment(..) => None,
-            TokenType::Const(_) => self.parse_assignment(),
+            TokenType::Const(..) => self.parse_assignment(),
             TokenType::Progmem(_) => None,
             TokenType::LBrace(_) => None,
             TokenType::RBrace(_) => None,
@@ -149,6 +149,12 @@ impl Parser {
             _ => return None,
         }
 
+        let start: usize;
+        match self.next_token {
+            TokenType::LBrace(x) => start = x,
+            _ => return None,
+        }
+
         let mut keymaps: Vec<KeymapStatement> = vec![];
         while match self.next_token {
             TokenType::RBrace(..) => false,
@@ -162,7 +168,7 @@ impl Parser {
                     match self.parse_keymap_statement() {
                         Some(x) => match x {
                             StatementEnum::KeymapStatement(x) => keymaps.push(x),
-                            StatementEnum::Keymaps(_) => {}
+                            StatementEnum::Keymaps(..) => {}
                         },
                         None => {}
                     }
@@ -171,14 +177,19 @@ impl Parser {
             }
         }
 
-        return Some(StatementEnum::Keymaps(keymaps));
+        let end: usize;
+        match self.next_token {
+            TokenType::RBrace(x) => end = x,
+            _ => return None,
+        }
+
+        return Some(StatementEnum::Keymaps(start, end, keymaps));
     }
 
     fn parse_keymap_statement(&mut self) -> Option<StatementEnum> {
         match self.next_token {
             TokenType::Ident(..) => {}
             _ => {
-                println!("{:?}", self.next_token);
                 return None;
             }
         }
@@ -312,32 +323,36 @@ mod tests {
         let ast = parser.parse();
 
         assert_eq!(
-            &StatementEnum::Keymaps(vec![
-                KeymapStatement::new(
-                    TokenType::Ident(80, "_QWERTY".to_string()),
-                    LayoutStatement::new(
-                        TokenType::Layout(91),
-                        vec![
-                            "KC_ESC".to_string(),
-                            "KC_Q".to_string(),
-                            "".to_string(),
-                            "KC_E".to_string()
-                        ]
+            &StatementEnum::Keymaps(
+                0,
+                0,
+                vec![
+                    KeymapStatement::new(
+                        TokenType::Ident(80, "_QWERTY".to_string()),
+                        LayoutStatement::new(
+                            TokenType::Layout(91),
+                            vec![
+                                "KC_ESC".to_string(),
+                                "KC_Q".to_string(),
+                                "".to_string(),
+                                "KC_E".to_string()
+                            ]
+                        )
+                    ),
+                    KeymapStatement::new(
+                        TokenType::Ident(154, "_SYM".to_string()),
+                        LayoutStatement::new(
+                            TokenType::Layout(162),
+                            vec![
+                                "KC_ESC".to_string(),
+                                "KC_Q".to_string(),
+                                "".to_string(),
+                                "KC_E".to_string()
+                            ]
+                        )
                     )
-                ),
-                KeymapStatement::new(
-                    TokenType::Ident(154, "_SYM".to_string()),
-                    LayoutStatement::new(
-                        TokenType::Layout(162),
-                        vec![
-                            "KC_ESC".to_string(),
-                            "KC_Q".to_string(),
-                            "".to_string(),
-                            "KC_E".to_string()
-                        ]
-                    )
-                )
-            ]),
+                ]
+            ),
             ast.statements
                 .get(0)
                 .expect("Failed to find statement in ast")

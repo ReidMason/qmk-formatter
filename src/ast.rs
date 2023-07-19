@@ -7,7 +7,7 @@ pub struct AST {
 #[derive(Debug, PartialEq)]
 pub enum StatementEnum {
     KeymapStatement(KeymapStatement),
-    Keymaps(KeymapStatements),
+    Keymaps(usize, usize, KeymapStatements),
 }
 
 type KeymapStatements = Vec<KeymapStatement>;
