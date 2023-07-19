@@ -37,8 +37,6 @@ fn main() {
 }
 
 fn get_formatted_file_contents(content: &str) -> String {
-    // let content = get_keymap();
-
     let lexer = Lexer::new(&content);
     let mut parser = Parser::new(lexer);
 
@@ -145,16 +143,6 @@ fn get_formatted_file_contents(content: &str) -> String {
             };
 
             formatting += "] = LAYOUT(\n";
-            // for (i, key) in keymap.layout_statement.keys.iter().enumerate() {
-            //     formatting += match key {
-            //         key if "" == key.trim() => "_______",
-            //         key => key,
-            //     };
-            //
-            //     if i < keymap.layout_statement.keys.len() - 1 {
-            //         formatting += ",";
-            //     }
-            // }
             formatting += &keymap_formatted;
 
             formatting += "),";

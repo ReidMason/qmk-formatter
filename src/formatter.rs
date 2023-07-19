@@ -335,11 +335,6 @@ pub fn get_keymap_string(keymap_format: Vec<Element>) -> String {
     keymap_format.iter().map(|x| get_border_name(x)).collect()
 }
 
-pub fn insert_keydisplay(content: &str, keymap_start: usize, key_display: String) -> String {
-    let (first, last) = content.split_at(keymap_start);
-    format!("{}\n{}\n{}", first, key_display, last)
-}
-
 #[cfg(test)]
 mod tests {
     use crate::{ast::LayoutStatement, lexer::TokenType};
@@ -363,8 +358,8 @@ mod tests {
         let display = get_keymap_string(display);
         let keymap = get_keymap_string(keymap);
 
-        let text = "This is before\n[KEYMAP] = ['KC_ESC']\nThis is after";
-        let result = insert_keydisplay(text, 15, display);
+        // assert!(expected_keymap, keymap)
+        // assert!(expected_keymap, keymap)
     }
 
     #[test]
