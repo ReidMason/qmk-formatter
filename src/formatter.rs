@@ -471,6 +471,7 @@ mod tests {
                 M::B,
             ],
         ];
+
         let result = get_keymap_format(&keymap, layout);
         let expected: Vec<Element> = vec![
             Element::LineStart,

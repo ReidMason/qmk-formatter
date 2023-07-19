@@ -89,11 +89,11 @@ fn get_formatted_file_contents(content: &str) -> String {
             M::K,
             M::K,
             M::K,
+            M::K,
+            M::K,
             M::B,
-            M::B,
-            M::B,
-            M::B,
-            M::B,
+            M::K,
+            M::K,
             M::K,
             M::K,
             M::K,
@@ -115,12 +115,12 @@ fn get_formatted_file_contents(content: &str) -> String {
             M::K,
             M::K,
             M::K,
+            M::K,
             M::B,
             M::B,
             M::B,
         ],
     ];
-
     let ast = parser.parse();
 
     let mut formatting = String::new();
