@@ -1,4 +1,9 @@
-use data::get_keymap;
+use std::{
+    env,
+    fs::File,
+    io::{Read, Write},
+};
+
 use lexer::Lexer;
 use parser::Parser;
 
@@ -14,7 +19,26 @@ mod lexer;
 mod parser;
 
 fn main() {
-    let content = get_keymap();
+    let args: Vec<String> = env::args().collect();
+    let filepath = args.get(1).expect("Filepath argument missing");
+    println!("{}", filepath);
+
+    let mut file = File::open(&filepath).expect("Failed to open file");
+    let mut contents = String::new();
+    file.read_to_string(&mut contents)
+        .expect("Failed to read file");
+
+    let new_contents = get_formatted_file_contents(&contents);
+
+    let mut file = File::create(&filepath).expect("Failed to open file to write");
+    file.write_all(new_contents.as_bytes())
+        .expect("Failed to write file");
+
+    return;
+}
+
+fn get_formatted_file_contents(content: &str) -> String {
+    // let content = get_keymap();
 
     let lexer = Lexer::new(&content);
     let mut parser = Parser::new(lexer);
@@ -137,8 +161,8 @@ fn main() {
         let (_, ending) = last.split_at(end - start - 1);
         let res = format!("{}\n{}\n{}", first, formatting, ending);
 
-        println!("{}", res);
-        // println!("Start: {} End: {}", start, end);
-        break;
+        return res;
     }
+
+    return content.to_string();
 }
