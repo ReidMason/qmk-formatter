@@ -145,12 +145,15 @@ fn get_formatted_file_contents(content: &str) -> String {
             };
 
             formatting += "] = LAYOUT(\n";
-            for key in &keymap.layout_statement.keys {
+            for (i, key) in keymap.layout_statement.keys.iter().enumerate() {
                 formatting += match key {
-                    key if "" == key.trim() => "______",
+                    key if "" == key.trim() => "_______",
                     key => key,
                 };
-                formatting += ",";
+
+                if i < keymap.layout_statement.keys.len() - 1 {
+                    formatting += ",";
+                }
             }
 
             formatting += "),";
