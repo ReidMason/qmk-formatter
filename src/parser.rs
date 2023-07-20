@@ -59,18 +59,21 @@ impl Parser {
         }
     }
 
+    fn expect_peek(&mut self, expected: TokenType) -> bool {
+        self.next_token();
+        match &self.next_token {
+            x if x == &expected => true,
+            _ => false,
+        }
+    }
+
     fn parse_assignment(&mut self) -> Option<StatementEnum> {
         match &self.next_token {
             TokenType::Ident(_, x) if x == "uint16_t" => {}
             _ => return None,
         }
 
-        self.next_token(); // Curr: PROGMEM
-
-        match self.next_token {
-            TokenType::Progmem(..) => {}
-            _ => return None,
-        }
+        self.expect_peek(TokenType::Progmem(0));
 
         self.next_token(); // Curr: keymaps
 
@@ -79,26 +82,9 @@ impl Parser {
             _ => return None,
         }
 
-        self.next_token(); // Curr: [
-
-        match self.next_token {
-            TokenType::LSqBrace(..) => {}
-            _ => return None,
-        }
-
-        self.next_token(); // Curr: ]
-
-        match self.next_token {
-            TokenType::RSqBrace(..) => {}
-            _ => return None,
-        }
-
-        self.next_token(); // Curr: [
-
-        match self.next_token {
-            TokenType::LSqBrace(..) => {}
-            _ => return None,
-        }
+        self.expect_peek(TokenType::LSqBrace(0));
+        self.expect_peek(TokenType::RSqBrace(0));
+        self.expect_peek(TokenType::LSqBrace(0));
 
         self.next_token(); // Curr: MATRIX_ROWS
 
@@ -107,19 +93,8 @@ impl Parser {
             _ => return None,
         }
 
-        self.next_token(); // Curr: ]
-
-        match self.next_token {
-            TokenType::RSqBrace(..) => {}
-            _ => return None,
-        }
-
-        self.next_token(); // Curr: [
-
-        match self.next_token {
-            TokenType::LSqBrace(..) => {}
-            _ => return None,
-        }
+        self.expect_peek(TokenType::RSqBrace(0));
+        self.expect_peek(TokenType::LSqBrace(0));
 
         self.next_token(); // Curr: MATRIX_COLS
 
@@ -128,26 +103,9 @@ impl Parser {
             _ => return None,
         }
 
-        self.next_token(); // Curr: ]
-
-        match self.next_token {
-            TokenType::RSqBrace(..) => {}
-            _ => return None,
-        }
-
-        self.next_token(); // Curr: =
-
-        match self.next_token {
-            TokenType::Equals(..) => {}
-            _ => return None,
-        }
-
-        self.next_token(); // Curr: {
-
-        match self.next_token {
-            TokenType::LBrace(..) => {}
-            _ => return None,
-        }
+        self.expect_peek(TokenType::RSqBrace(0));
+        self.expect_peek(TokenType::Equals(0));
+        self.expect_peek(TokenType::LBrace(0));
 
         let start: usize;
         match self.next_token {
