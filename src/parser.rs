@@ -59,53 +59,66 @@ impl Parser {
         }
     }
 
-    fn expect_peek(&mut self, expected: TokenType) -> bool {
-        self.next_token();
-        match &self.next_token {
-            x if x == &expected => true,
-            _ => false,
-        }
-    }
-
     fn parse_assignment(&mut self) -> Option<StatementEnum> {
         match &self.next_token {
-            TokenType::Ident(_, x) if x == "uint16_t" => {}
+            TokenType::Ident(_, x) if x == "uint16_t" => self.next_token(),
             _ => return None,
         }
 
-        self.expect_peek(TokenType::Progmem(0));
-
-        self.next_token(); // Curr: keymaps
+        match self.next_token {
+            TokenType::Progmem(_) => self.next_token(),
+            _ => return None,
+        }
 
         match &self.next_token {
-            TokenType::Ident(_, x) if x == "keymaps" => {}
+            TokenType::Ident(_, x) if x == "keymaps" => self.next_token(),
             _ => return None,
         }
 
-        self.expect_peek(TokenType::LSqBrace(0));
-        self.expect_peek(TokenType::RSqBrace(0));
-        self.expect_peek(TokenType::LSqBrace(0));
+        match self.next_token {
+            TokenType::LSqBrace(_) => self.next_token(),
+            _ => return None,
+        }
 
-        self.next_token(); // Curr: MATRIX_ROWS
+        match self.next_token {
+            TokenType::RSqBrace(_) => self.next_token(),
+            _ => return None,
+        }
+
+        match self.next_token {
+            TokenType::LSqBrace(_) => self.next_token(),
+            _ => return None,
+        }
 
         match &self.next_token {
-            TokenType::Ident(_, x) if x == "MATRIX_ROWS" => {}
+            TokenType::Ident(_, x) if x == "MATRIX_ROWS" => self.next_token(),
             _ => return None,
         }
 
-        self.expect_peek(TokenType::RSqBrace(0));
-        self.expect_peek(TokenType::LSqBrace(0));
+        match self.next_token {
+            TokenType::RSqBrace(_) => self.next_token(),
+            _ => return None,
+        }
 
-        self.next_token(); // Curr: MATRIX_COLS
+        match self.next_token {
+            TokenType::LSqBrace(_) => self.next_token(),
+            _ => return None,
+        }
 
         match &self.next_token {
-            TokenType::Ident(_, x) if x == "MATRIX_COLS" => {}
+            TokenType::Ident(_, x) if x == "MATRIX_COLS" => self.next_token(),
             _ => return None,
         }
 
-        self.expect_peek(TokenType::RSqBrace(0));
-        self.expect_peek(TokenType::Equals(0));
-        self.expect_peek(TokenType::LBrace(0));
+        match self.next_token {
+            TokenType::RSqBrace(_) => self.next_token(),
+            _ => return None,
+        }
+
+        match self.next_token {
+            TokenType::Equals(_) => self.next_token(),
+            _ => return None,
+        }
 
         let start: usize;
         match self.next_token {
@@ -146,22 +159,18 @@ impl Parser {
 
     fn parse_keymap_statement(&mut self) -> Option<StatementEnum> {
         match self.next_token {
-            TokenType::Ident(..) => {}
-            _ => {
-                return None;
-            }
-        }
-
-        self.next_token(); // Curr: _QWERTY
-
-        match self.next_token {
-            TokenType::RSqBrace(..) => {}
+            TokenType::Ident(..) => self.next_token(),
             _ => return None,
         }
 
-        let token = self.curr_token.clone();
-
-        self.next_token(); // Curr: ]
+        let token: TokenType;
+        match self.next_token {
+            TokenType::RSqBrace(..) => {
+                token = self.curr_token.clone();
+                self.next_token();
+            }
+            _ => return None,
+        }
 
         let layout_statement = match self.parse_layout_statement() {
             Some(x) => x,
@@ -175,27 +184,23 @@ impl Parser {
 
     fn parse_layout_statement(&mut self) -> Option<LayoutStatement> {
         match self.next_token {
-            TokenType::Equals(..) => {}
+            TokenType::Equals(..) => self.next_token(),
             _ => return None,
         }
-
-        self.next_token(); // Curr: =
 
         match self.next_token {
-            TokenType::Layout(..) => {}
+            TokenType::Layout(..) => self.next_token(),
             _ => return None,
         }
 
-        self.next_token(); // Curr: Layout
-
+        let token: TokenType;
         match self.next_token {
-            TokenType::LParen(..) => {}
+            TokenType::LParen(..) => {
+                token = self.curr_token.clone();
+                self.next_token(); // Curr: (
+            }
             _ => return None,
         }
-
-        let token = self.curr_token.clone();
-
-        self.next_token(); // Curr: (
 
         let keys = self.parse_layout_keys();
         let statement = LayoutStatement::new(token, keys);
