@@ -334,7 +334,6 @@ pub fn get_keymap_string(keymap_format: Vec<Element>) -> String {
 mod tests {
     use crate::{ast::LayoutStatement, lexer::TokenType};
 
-    // Note this useful idiom: importing names from outer (for mod tests) scope.
     use super::*;
 
     #[test]
