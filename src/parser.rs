@@ -59,65 +59,39 @@ impl Parser {
         }
     }
 
+    fn expect_peek(&mut self, expected: TokenType) -> bool {
+        if std::mem::discriminant(&expected) == std::mem::discriminant(&self.next_token) {
+            match (&self.next_token, &expected) {
+                (TokenType::Ident(_, x), TokenType::Ident(_, y)) if x != y => return false,
+                (_, _) => (),
+            };
+
+            self.next_token();
+            return true;
+        }
+        false
+    }
+
     fn parse_assignment(&mut self) -> Option<StatementEnum> {
-        match &self.next_token {
-            TokenType::Ident(_, x) if x == "uint16_t" => self.next_token(),
-            _ => return None,
-        }
+        let expected = [
+            TokenType::Ident(0, "uint16_t".to_string()),
+            TokenType::Progmem(0),
+            TokenType::Ident(0, "keymaps".to_string()),
+            TokenType::LSqBrace(0),
+            TokenType::RSqBrace(0),
+            TokenType::LSqBrace(0),
+            TokenType::Ident(0, "MATRIX_ROWS".to_string()),
+            TokenType::RSqBrace(0),
+            TokenType::LSqBrace(0),
+            TokenType::Ident(0, "MATRIX_COLS".to_string()),
+            TokenType::RSqBrace(0),
+            TokenType::Equals(0),
+        ];
 
-        match self.next_token {
-            TokenType::Progmem(_) => self.next_token(),
-            _ => return None,
-        }
-
-        match &self.next_token {
-            TokenType::Ident(_, x) if x == "keymaps" => self.next_token(),
-            _ => return None,
-        }
-
-        match self.next_token {
-            TokenType::LSqBrace(_) => self.next_token(),
-            _ => return None,
-        }
-
-        match self.next_token {
-            TokenType::RSqBrace(_) => self.next_token(),
-            _ => return None,
-        }
-
-        match self.next_token {
-            TokenType::LSqBrace(_) => self.next_token(),
-            _ => return None,
-        }
-
-        match &self.next_token {
-            TokenType::Ident(_, x) if x == "MATRIX_ROWS" => self.next_token(),
-            _ => return None,
-        }
-
-        match self.next_token {
-            TokenType::RSqBrace(_) => self.next_token(),
-            _ => return None,
-        }
-
-        match self.next_token {
-            TokenType::LSqBrace(_) => self.next_token(),
-            _ => return None,
-        }
-
-        match &self.next_token {
-            TokenType::Ident(_, x) if x == "MATRIX_COLS" => self.next_token(),
-            _ => return None,
-        }
-
-        match self.next_token {
-            TokenType::RSqBrace(_) => self.next_token(),
-            _ => return None,
-        }
-
-        match self.next_token {
-            TokenType::Equals(_) => self.next_token(),
-            _ => return None,
+        for e in expected {
+            if !self.expect_peek(e) {
+                return None;
+            }
         }
 
         let start: usize;
@@ -183,14 +157,12 @@ impl Parser {
     }
 
     fn parse_layout_statement(&mut self) -> Option<LayoutStatement> {
-        match self.next_token {
-            TokenType::Equals(..) => self.next_token(),
-            _ => return None,
-        }
+        let expected = [TokenType::Equals(0), TokenType::Layout(0)];
 
-        match self.next_token {
-            TokenType::Layout(..) => self.next_token(),
-            _ => return None,
+        for e in expected {
+            if !self.expect_peek(e) {
+                return None;
+            }
         }
 
         let token: TokenType;
