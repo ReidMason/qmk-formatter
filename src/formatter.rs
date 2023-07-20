@@ -19,23 +19,25 @@ pub enum Element {
     Key(String),
 }
 
-pub fn get_border_name(border: &Element) -> String {
-    match border {
-        Element::TopLeft => "╭".to_string(),
-        Element::TopRight => "╮".to_string(),
-        Element::BottomRight => "╯".to_string(),
-        Element::BottomLeft => "╰".to_string(),
-        Element::Horizontal => "─".to_string(),
-        Element::Vertical => "│".to_string(),
-        Element::TopT => "┬".to_string(),
-        Element::BottomT => "┴".to_string(),
-        Element::LeftT => "├".to_string(),
-        Element::RightT => "┤".to_string(),
-        Element::Plus => "┼".to_string(),
-        Element::Newline => "\n".to_string(),
-        Element::LineStart => "//    ".to_string(),
-        Element::Space => " ".to_string(),
-        Element::Key(x) => x.to_string(),
+impl Element {
+    pub fn to_string(&self) -> String {
+        match self {
+            Element::TopLeft => "╭".to_string(),
+            Element::TopRight => "╮".to_string(),
+            Element::BottomRight => "╯".to_string(),
+            Element::BottomLeft => "╰".to_string(),
+            Element::Horizontal => "─".to_string(),
+            Element::Vertical => "│".to_string(),
+            Element::TopT => "┬".to_string(),
+            Element::BottomT => "┴".to_string(),
+            Element::LeftT => "├".to_string(),
+            Element::RightT => "┤".to_string(),
+            Element::Plus => "┼".to_string(),
+            Element::Newline => "\n".to_string(),
+            Element::LineStart => "//    ".to_string(),
+            Element::Space => " ".to_string(),
+            Element::Key(x) => x.to_string(),
+        }
     }
 }
 
@@ -327,7 +329,7 @@ pub fn get_keymap_format(keymap: &KeymapStatement, layout: Layout) -> (Vec<Eleme
 }
 
 pub fn get_keymap_string(keymap_format: Vec<Element>) -> String {
-    keymap_format.iter().map(|x| get_border_name(x)).collect()
+    keymap_format.iter().map(|x| x.to_string()).collect()
 }
 
 #[cfg(test)]
