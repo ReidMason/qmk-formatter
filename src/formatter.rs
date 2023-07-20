@@ -47,7 +47,7 @@ pub enum M {
     B,
 }
 
-type Layout = Vec<Vec<M>>;
+pub type Layout = Vec<Vec<M>>;
 
 pub fn get_keymap_format(keymap: &KeymapStatement, layout: Layout) -> (Vec<Element>, Vec<Element>) {
     // Add an extra blank column on the end to make formatting easier

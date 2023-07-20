@@ -4,6 +4,7 @@ use std::{
     io::{Read, Write},
 };
 
+use formatter::Layout;
 use lexer::Lexer;
 use parser::Parser;
 
@@ -16,8 +17,6 @@ mod ast;
 mod formatter;
 mod lexer;
 mod parser;
-
-type Layout = Vec<Vec<M>>;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
