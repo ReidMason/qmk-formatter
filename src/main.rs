@@ -2,6 +2,7 @@ use std::{
     env,
     fs::File,
     io::{Read, Write},
+    process::ExitCode,
 };
 
 use formatter::Layout;
@@ -18,10 +19,13 @@ mod formatter;
 mod lexer;
 mod parser;
 
-fn main() {
+fn main() -> ExitCode {
     let args: Vec<String> = env::args().collect();
     let filepath = args.get(1).expect("Filepath argument missing");
-    let _ = format_file(filepath);
+    match format_file(filepath) {
+        Ok(_) => ExitCode::SUCCESS,
+        Err(_) => ExitCode::FAILURE,
+    }
 }
 
 fn format_file(filepath: &str) -> Result<(), ()> {
