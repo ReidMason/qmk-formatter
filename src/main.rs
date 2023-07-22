@@ -21,6 +21,14 @@ mod parser;
 fn main() {
     let args: Vec<String> = env::args().collect();
     let filepath = args.get(1).expect("Filepath argument missing");
+    let _ = format_file(filepath);
+}
+
+fn format_file(filepath: &str) -> Result<(), ()> {
+    if !filepath.ends_with("keymap.c") {
+        println!("Provided filepath isn't a 'keymap.c' file");
+        return Err(());
+    }
 
     let layout: Layout = vec![
         vec![
@@ -112,7 +120,7 @@ fn main() {
     file.write_all(new_contents.as_bytes())
         .expect("Failed to write file");
 
-    return;
+    return Ok(());
 }
 
 fn get_formatted_file_contents(content: &str, layout: Layout) -> String {
@@ -164,24 +172,51 @@ mod tests {
     use super::*;
 
     #[test]
+    fn test_invalid_filename_doesnt_run() {
+        let filepath = "/home/user/randomfile.c";
+        let result = format_file(filepath);
+
+        assert!(result.is_err());
+    }
+
+    #[test]
     fn test_formatting_full_code() {
         let content = r##"const thing = other;
 // top comments
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
-//  Comments
+//    ╭─────────┬─────────┬─────────┬─────────┬─────────┬─────────╮                                                 ╭─────────┬─────────┬─────────┬─────────┬─────────┬─────────╮         
+//    │ KC_ESC  │ KC_Q    │ KC_W    │ KC_E    │ KC_R    │ KC_T    │                                                 │ KC_Y    │ KC_U    │ KC_I    │ KC_O    │ KC_P    │ KC_BSPC │         
+//    ├─────────┼─────────┼─────────┼─────────┼─────────┼─────────┤                                                 ├─────────┼─────────┼─────────┼─────────┼─────────┼─────────┤         
+//    │ SFT_TAB │ KC_A    │ KC_S    │ KC_D    │ KC_F    │ KC_G    │                                                 │ KC_H    │ KC_J    │ KC_K    │ KC_L    │ KC_SCLN │ SFT_QOT │         
+//    ├─────────┼─────────┼─────────┼─────────┼─────────┼─────────┼─────────┬─────────╮         ╭─────────┬─────────┼─────────┼─────────┼─────────┼─────────┼─────────┼─────────┤         
+//    │ KC_LCTL │ KC_Z    │ KC_X    │ KC_C    │ KC_V    │ KC_B    │ KC_CPYP │ ADJUST  │         │ FKEYS   │         │ KC_N    │ KC_M    │ KC_COMM │ KC_DOT  │ KC_SLSH │ KC_RCTL │         
+//    ╰─────────┴─────────┴─────────┼─────────┼─────────┼─────────┼─────────┼─────────┤         ├─────────┼─────────┼─────────┼─────────┼─────────┼─────────┴─────────┴─────────╯         
+//                                  │ KC_LALT │ NAV     │ KC_LGUI │ KC_ENT  │ SYM     │         │ SYM     │ KC_SPC  │ NAV     │         │         │                                       
+//                                  ╰─────────┴─────────┴─────────┴─────────┴─────────╯         ╰─────────┴─────────┴─────────┴─────────┴─────────╯                                       
 [_QWERTY] = LAYOUT(
  KC_ESC  , KC_Q    , KC_W    , KC_E    , KC_R    , KC_T    ,                                                   KC_Y    , KC_U    , KC_I    , KC_O    , KC_P    , KC_BSPC ,          
  SFT_TAB , KC_A    , KC_S    , KC_D    , KC_F    , KC_G    ,                                                   KC_H    , KC_J    , KC_K    , KC_L    , KC_SCLN , SFT_QOT ,          
  KC_LCTL , KC_Z    , KC_X    , KC_C    , KC_V    , KC_B    , KC_CPYP , ADJUST  ,           FKEYS   , _______ , KC_N    , KC_M    , KC_COMM , KC_DOT  , KC_SLSH , KC_RCTL ,          
                                KC_LALT , NAV     , KC_LGUI , KC_ENT  , SYM     ,           SYM     , KC_SPC  , NAV     , _______ , _______                                          
 ),
-// More comments and things
+
+//    ╭─────────┬─────────┬─────────┬─────────┬─────────┬─────────╮                                                 ╭─────────┬─────────┬─────────┬─────────┬─────────┬─────────╮         
+//    │         │         │         │         │         │         │                                                 │         │         │         │         │         │ KC_DEL  │         
+//    ├─────────┼─────────┼─────────┼─────────┼─────────┼─────────┤                                                 ├─────────┼─────────┼─────────┼─────────┼─────────┼─────────┤         
+//    │         │ KC_LGUI │ KC_LALT │ KC_LCTL │ KC_LSFT │         │                                                 │ KC_LEFT │ KC_DOWN │ KC_UP   │ KC_RGHT │         │         │         
+//    ├─────────┼─────────┼─────────┼─────────┼─────────┼─────────┼─────────┬─────────╮         ╭─────────┬─────────┼─────────┼─────────┼─────────┼─────────┼─────────┼─────────┤         
+//    │         │         │         │         │         │         │         │ KC_SCRL │         │         │         │         │         │         │         │         │         │         
+//    ╰─────────┴─────────┴─────────┼─────────┼─────────┼─────────┼─────────┼─────────┤         ├─────────┼─────────┼─────────┼─────────┼─────────┼─────────┴─────────┴─────────╯         
+//                                  │         │         │         │         │         │         │         │         │         │         │         │                                       
+//                                  ╰─────────┴─────────┴─────────┴─────────┴─────────╯         ╰─────────┴─────────┴─────────┴─────────┴─────────╯                                       
 [_NAV] = LAYOUT(
  _______ , _______ , _______ , _______ , _______ , _______ ,                                                   _______ , _______ , _______ , _______ , _______ , KC_DEL  ,          
  _______ , KC_LGUI , KC_LALT , KC_LCTL , KC_LSFT , _______ ,                                                   KC_LEFT , KC_DOWN , KC_UP   , KC_RGHT , _______ , _______ ,          
  _______ , _______ , _______ , _______ , _______ , _______ , _______ , KC_SCRL ,           _______ , _______ , _______ , _______ , _______ , _______ , _______ , _______ ,          
                                _______ , _______ , _______ , _______ , _______ ,           _______ , _______ , _______ , _______ , _______                                          
 ),
+
+
 }
 // something
 const thing = other;
