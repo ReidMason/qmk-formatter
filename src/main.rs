@@ -38,7 +38,8 @@ fn main() -> ExitCode {
         return ExitCode::FAILURE;
     }
 
-    match format_file(&args.filepath) {
+    let layout = get_layout();
+    match format_file(&args.filepath, layout) {
         Ok(_) => ExitCode::SUCCESS,
         Err(_) => ExitCode::FAILURE,
     }
@@ -53,8 +54,74 @@ fn validate_args(args: &Args) -> bool {
     return true;
 }
 
-fn format_file(filepath: &str) -> Result<(), ()> {
-    let layout: Layout = vec![
+fn format_file(filepath: &str, layout: Layout) -> Result<(), ()> {
+    let contents = read_file(filepath);
+    let new_contents = get_formatted_file_contents(&contents, layout);
+    write_file(filepath, &new_contents);
+
+    return Ok(());
+}
+
+fn read_file(filepath: &str) -> String {
+    let mut file = File::open(&filepath).expect("Failed to open file");
+    let mut contents = String::new();
+    file.read_to_string(&mut contents)
+        .expect("Failed to read file");
+    contents
+}
+
+fn write_file(filepath: &str, content: &str) {
+    let mut file = File::create(&filepath).expect("Failed to open file to write");
+    file.write_all(content.as_bytes())
+        .expect("Failed to write file");
+}
+
+fn get_formatted_file_contents(content: &str, layout: Layout) -> String {
+    let lexer = Lexer::new(&content);
+    let mut parser = Parser::new(lexer);
+
+    let ast = parser.parse();
+
+    let mut formatting = String::new();
+    for statement in ast.statements {
+        let (start, end, keymaps) = match statement {
+            ast::StatementEnum::KeymapStatement(..) => continue,
+            ast::StatementEnum::Keymaps(x, y, z) => (x, y, z),
+        };
+
+        for keymap in keymaps {
+            let (display, keymap_formatted) = get_keymap_format(&keymap, layout.clone());
+
+            let display = get_keymap_string(display);
+            let keymap_formatted = get_keymap_string(keymap_formatted);
+            formatting += &display;
+            formatting += "\n";
+
+            formatting += "[";
+            formatting += match &keymap.token {
+                TokenType::Ident(_, x) => x,
+                _ => "",
+            };
+
+            formatting += "] = LAYOUT(\n";
+            formatting += &keymap_formatted;
+
+            formatting += "),";
+            formatting += "\n\n";
+        }
+
+        let (first, last) = content.split_at(start + 1);
+        let (_, ending) = last.split_at(end - start - 1);
+        let res = format!("{}\n{}\n{}", first, formatting, ending);
+
+        return res;
+    }
+
+    return content.to_string();
+}
+
+fn get_layout() -> Layout {
+    return vec![
         vec![
             M::K,
             M::K,
@@ -132,70 +199,6 @@ fn format_file(filepath: &str) -> Result<(), ()> {
             M::B,
         ],
     ];
-
-    let contents = read_file(filepath);
-    let new_contents = get_formatted_file_contents(&contents, layout);
-    write_file(filepath, &new_contents);
-
-    return Ok(());
-}
-
-fn read_file(filepath: &str) -> String {
-    let mut file = File::open(&filepath).expect("Failed to open file");
-    let mut contents = String::new();
-    file.read_to_string(&mut contents)
-        .expect("Failed to read file");
-    contents
-}
-
-fn write_file(filepath: &str, content: &str) {
-    let mut file = File::create(&filepath).expect("Failed to open file to write");
-    file.write_all(content.as_bytes())
-        .expect("Failed to write file");
-}
-
-fn get_formatted_file_contents(content: &str, layout: Layout) -> String {
-    let lexer = Lexer::new(&content);
-    let mut parser = Parser::new(lexer);
-
-    let ast = parser.parse();
-
-    let mut formatting = String::new();
-    for statement in ast.statements {
-        let (start, end, keymaps) = match statement {
-            ast::StatementEnum::KeymapStatement(..) => continue,
-            ast::StatementEnum::Keymaps(x, y, z) => (x, y, z),
-        };
-
-        for keymap in keymaps {
-            let (display, keymap_formatted) = get_keymap_format(&keymap, layout.clone());
-
-            let display = get_keymap_string(display);
-            let keymap_formatted = get_keymap_string(keymap_formatted);
-            formatting += &display;
-            formatting += "\n";
-
-            formatting += "[";
-            formatting += match &keymap.token {
-                TokenType::Ident(_, x) => x,
-                _ => "",
-            };
-
-            formatting += "] = LAYOUT(\n";
-            formatting += &keymap_formatted;
-
-            formatting += "),";
-            formatting += "\n\n";
-        }
-
-        let (first, last) = content.split_at(start + 1);
-        let (_, ending) = last.split_at(end - start - 1);
-        let res = format!("{}\n{}\n{}", first, formatting, ending);
-
-        return res;
-    }
-
-    return content.to_string();
 }
 
 #[cfg(test)]
