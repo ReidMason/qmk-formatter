@@ -25,23 +25,35 @@ mod parser;
 struct Args {
     /// Filepath to the target file
     filepath: String,
+
+    /// Force formatting regardless of filename
+    #[arg(short, long, default_value_t = false)]
+    force: bool,
 }
 
 fn main() -> ExitCode {
-    // let args: Vec<String> = env::args().collect();
     let args = Args::parse();
+
+    if !validate_args(&args) {
+        return ExitCode::FAILURE;
+    }
+
     match format_file(&args.filepath) {
         Ok(_) => ExitCode::SUCCESS,
         Err(_) => ExitCode::FAILURE,
     }
 }
 
-fn format_file(filepath: &str) -> Result<(), ()> {
-    if !filepath.ends_with("keymap.c") {
+fn validate_args(args: &Args) -> bool {
+    if !args.force && !args.filepath.ends_with("keymap.c") {
         println!("Provided filepath isn't a 'keymap.c' file");
-        return Err(());
+        return false;
     }
 
+    return true;
+}
+
+fn format_file(filepath: &str) -> Result<(), ()> {
     let layout: Layout = vec![
         vec![
             M::K,
@@ -121,18 +133,25 @@ fn format_file(filepath: &str) -> Result<(), ()> {
         ],
     ];
 
+    let contents = read_file(filepath);
+    let new_contents = get_formatted_file_contents(&contents, layout);
+    write_file(filepath, &new_contents);
+
+    return Ok(());
+}
+
+fn read_file(filepath: &str) -> String {
     let mut file = File::open(&filepath).expect("Failed to open file");
     let mut contents = String::new();
     file.read_to_string(&mut contents)
         .expect("Failed to read file");
+    contents
+}
 
-    let new_contents = get_formatted_file_contents(&contents, layout);
-
+fn write_file(filepath: &str, content: &str) {
     let mut file = File::create(&filepath).expect("Failed to open file to write");
-    file.write_all(new_contents.as_bytes())
+    file.write_all(content.as_bytes())
         .expect("Failed to write file");
-
-    return Ok(());
 }
 
 fn get_formatted_file_contents(content: &str, layout: Layout) -> String {
@@ -184,11 +203,25 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_invalid_filename_doesnt_run() {
-        let filepath = "/home/user/randomfile.c";
-        let result = format_file(filepath);
+    fn test_args_validation_invalid_filename() {
+        let args = Args {
+            filepath: "/home/path/invalid.c".to_string(),
+            force: false,
+        };
+        let result = validate_args(&args);
 
-        assert!(result.is_err());
+        assert!(!result);
+    }
+
+    #[test]
+    fn test_args_validation_invalid_filename_force() {
+        let args = Args {
+            filepath: "/home/path/invalid.c".to_string(),
+            force: true,
+        };
+        let result = validate_args(&args);
+
+        assert!(result);
     }
 
     #[test]
