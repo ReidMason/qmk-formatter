@@ -1,10 +1,10 @@
 use std::{
-    env,
     fs::File,
     io::{Read, Write},
     process::ExitCode,
 };
 
+use clap::Parser as ClapParser;
 use formatter::Layout;
 use lexer::Lexer;
 use parser::Parser;
@@ -19,10 +19,18 @@ mod formatter;
 mod lexer;
 mod parser;
 
+/// A command line formatter for qmk keymap files
+#[derive(ClapParser, Debug)]
+#[command(author, version, about, long_about = None)]
+struct Args {
+    /// Filepath to the target file
+    filepath: String,
+}
+
 fn main() -> ExitCode {
-    let args: Vec<String> = env::args().collect();
-    let filepath = args.get(1).expect("Filepath argument missing");
-    match format_file(filepath) {
+    // let args: Vec<String> = env::args().collect();
+    let args = Args::parse();
+    match format_file(&args.filepath) {
         Ok(_) => ExitCode::SUCCESS,
         Err(_) => ExitCode::FAILURE,
     }
