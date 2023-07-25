@@ -355,11 +355,16 @@ mod tests {
         let display = get_keymap_string(display);
         let expected_display =
             "//    ╭────────╮        \n//    │ KC_ESC │        \n//    ╰────────╯";
-        assert_eq!(expected_display, display);
+
+        for (i, (ex, res)) in expected_display.chars().zip(display.chars()).enumerate() {
+            assert_eq!(ex, res, "Char index: {}", i);
+        }
 
         let keymap = get_keymap_string(keymap);
-        let expected_keymap = " KC_ESC\n";
-        assert_eq!(expected_keymap, keymap);
+        let expected_keymap = " KC_ESC";
+        for (i, (ex, res)) in keymap.chars().zip(expected_keymap.chars()).enumerate() {
+            assert_eq!(ex, res, "Char index: {}", i);
+        }
     }
 
     #[test]
@@ -506,10 +511,15 @@ mod tests {
 
         let display = get_keymap_string(display);
         let expected = "//    ╭──────────┬──────────┬──────────┬──────────┬──────────┬──────────╮                                                      ╭──────────┬──────────┬──────────┬──────────┬──────────┬──────────╮          \n//    │ KC_ESC   │ KC_Q     │ KC_W     │ KC_E     │ KC_R     │ KC_T     │                                                      │ KC_Y     │ KC_U     │ KC_I     │ KC_O     │ KC_P     │ KC_BSPC  │          \n//    ├──────────┼──────────┼──────────┼──────────┼──────────┼──────────┤                                                      ├──────────┼──────────┼──────────┼──────────┼──────────┼──────────┤          \n//    │ SFT_TAB  │ KC_A     │ KC_S     │ KC_D     │ KC_F     │ KC_G     │                                                      │ KC_H     │ KC_J     │ KC_K     │ KC_L     │ KC_SCLN  │ KC_QUOTE │          \n//    ├──────────┼──────────┼──────────┼──────────┼──────────┼──────────┼──────────┬──────────╮          ╭──────────┬──────────┼──────────┼──────────┼──────────┼──────────┼──────────┼──────────┤          \n//    │ KC_LCTL  │ KC_Z     │ KC_X     │ KC_C     │ KC_V     │ KC_B     │ KC_CPYP  │ ADJUST   │          │ FKEYS    │          │ KC_N     │ KC_M     │ KC_COMM  │ KC_DOT   │ KC_SLSH  │ KC_RSFT  │          \n//    ╰──────────┴──────────┴──────────┼──────────┼──────────┼──────────┼──────────┼──────────┤          ├──────────┼──────────┼──────────┼──────────┼──────────┼──────────┴──────────┴──────────╯          \n//                                     │ KC_LALT  │ NAV      │ SYM      │ KC_ENT   │ KC_LGUI  │          │ KC_RGUI  │ KC_SPC   │ NAV      │          │          │                                           \n//                                     ╰──────────┴──────────┴──────────┴──────────┴──────────╯          ╰──────────┴──────────┴──────────┴──────────┴──────────╯";
-        assert_eq!(expected, display);
+        for (ex, res) in expected.chars().zip(display.chars()) {
+            assert_eq!(ex, res);
+        }
 
         let keymap = get_keymap_string(keymap);
         let expected = " KC_ESC   , KC_Q     , KC_W     , KC_E     , KC_R     , KC_T     ,                                                        KC_Y     , KC_U     , KC_I     , KC_O     , KC_P     , KC_BSPC  ,           \n SFT_TAB  , KC_A     , KC_S     , KC_D     , KC_F     , KC_G     ,                                                        KC_H     , KC_J     , KC_K     , KC_L     , KC_SCLN  , KC_QUOTE ,           \n KC_LCTL  , KC_Z     , KC_X     , KC_C     , KC_V     , KC_B     , KC_CPYP  , ADJUST   ,            FKEYS    , _______  , KC_N     , KC_M     , KC_COMM  , KC_DOT   , KC_SLSH  , KC_RSFT  ,           \n                                  KC_LALT  , NAV      , SYM      , KC_ENT   , KC_LGUI  ,            KC_RGUI  , KC_SPC   , NAV      , _______  , _______";
-        assert_eq!(expected, keymap);
+
+        for (ex, res) in expected.chars().zip(keymap.chars()) {
+            assert_eq!(ex, res);
+        }
     }
 }

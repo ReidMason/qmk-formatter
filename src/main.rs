@@ -89,7 +89,25 @@ fn get_formatted_file_contents(content: &str, layout: Layout) -> String {
             ast::StatementEnum::Keymaps(x, y, z) => (x, y, z),
         };
 
+        let layout_keys = layout
+            .iter()
+            .flatten()
+            .filter(|x| match x {
+                M::K => true,
+                M::B => false,
+            })
+            .count();
         for keymap in keymaps {
+            // Keymap has the wrong number of keys
+            let keymap_keys = keymap.layout_statement.keys.len();
+            if keymap_keys != layout_keys {
+                println!(
+                    "Keymap has {} keys layout expected {} keys",
+                    keymap_keys, layout_keys
+                );
+                return content.to_string();
+            }
+
             let (display, keymap_formatted) = get_keymap_format(&keymap, layout.clone());
 
             let display = get_keymap_string(display);
@@ -112,7 +130,7 @@ fn get_formatted_file_contents(content: &str, layout: Layout) -> String {
 
         let (first, last) = content.split_at(start + 1);
         let (_, ending) = last.split_at(end - start - 1);
-        let res = format!("{}\n{}\n{}", first, formatting, ending);
+        let res = format!("{}\n{}\n{}", first, formatting.trim(), ending);
 
         return res;
     }
@@ -249,7 +267,6 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 ),
 
 //    ╭─────────┬─────────┬─────────┬─────────┬─────────┬─────────╮                                                 ╭─────────┬─────────┬─────────┬─────────┬─────────┬─────────╮         
-//    │         │         │         │         │         │         │                                                 │         │         │         │         │         │ KC_DEL  │         
 //    ├─────────┼─────────┼─────────┼─────────┼─────────┼─────────┤                                                 ├─────────┼─────────┼─────────┼─────────┼─────────┼─────────┤         
 //    │         │ KC_LGUI │ KC_LALT │ KC_LCTL │ KC_LSFT │         │                                                 │ KC_LEFT │ KC_DOWN │ KC_UP   │ KC_RGHT │         │         │         
 //    ├─────────┼─────────┼─────────┼─────────┼─────────┼─────────┼─────────┬─────────╮         ╭─────────┬─────────┼─────────┼─────────┼─────────┼─────────┼─────────┼─────────┤         
@@ -266,6 +283,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 
 
 }
+
 // something
 const thing = other;
 "##;
@@ -388,7 +406,10 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 // something
 const thing = other;"##;
 
-        assert_eq!(expected, result)
+        println!("{}", result);
+        for (i, (ex, res)) in expected.chars().zip(result.chars()).enumerate() {
+            assert_eq!(ex, res, "Char index: {}", i);
+        }
     }
 
     #[test]
