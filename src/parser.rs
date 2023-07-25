@@ -190,10 +190,10 @@ impl Parser {
             _ => true,
         } {
             match &self.curr_token {
-                TokenType::Ident(_, x) => {
+                TokenType::Ident(_, _) => {
                     let key_string = match &self.next_token {
                         TokenType::LParen(..) => self.parse_function_keymap(),
-                        _ => x.to_string(),
+                        _ => self.curr_token.to_string(),
                     };
                     keys.push(key_string);
                 }
@@ -214,19 +214,16 @@ impl Parser {
         let mut key_string = "".to_string();
 
         loop {
-            match &self.curr_token {
-                TokenType::Ident(_, v) => key_string.push_str(v),
-                TokenType::LParen(..) => key_string.push_str("("),
-                _ => {}
-            }
+            key_string.push_str(&self.curr_token.to_string());
             self.next_token();
+
             match self.curr_token {
                 TokenType::RParen(..) => break,
                 _ => {}
             }
         }
 
-        key_string.push_str(")");
+        key_string.push_str(&self.curr_token.to_string());
         key_string
     }
 }

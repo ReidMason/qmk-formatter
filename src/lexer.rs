@@ -1,3 +1,5 @@
+use std::fmt;
+
 pub struct Lexer {
     content: Vec<u8>,
     ch: u8,
@@ -117,6 +119,29 @@ pub enum TokenType {
     EOF,
     LBrace(usize),
     RBrace(usize),
+}
+
+impl TokenType {
+    pub fn to_string(&self) -> String {
+        match self {
+            TokenType::LParen(_) => "(",
+            TokenType::RParen(_) => ")",
+            TokenType::LSqBrace(_) => "[",
+            TokenType::RSqBrace(_) => "]",
+            TokenType::Equals(_) => "=",
+            TokenType::Comma(_) => ",",
+            TokenType::Layout(_) => "LAYOUT",
+            TokenType::Blank(_) => "",
+            TokenType::Ident(_, x) => x,
+            TokenType::Const(_) => "const",
+            TokenType::Comment(_, _, x) => x,
+            TokenType::Progmem(_) => "progmem",
+            TokenType::EOF => "",
+            TokenType::LBrace(_) => "{",
+            TokenType::RBrace(_) => "}",
+        }
+        .to_string()
+    }
 }
 
 #[cfg(test)]
