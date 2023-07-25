@@ -181,17 +181,26 @@ impl Parser {
     }
 
     fn parse_layout_keys(&mut self) -> Vec<String> {
-        self.next_token(); // Curr: KC_ESC
+        self.next_token();
 
         let mut keys: Vec<String> = vec![];
-        // while self.curr_token != TokenType::RParen {
+
         while match self.curr_token {
             TokenType::RParen(..) => false,
             _ => true,
         } {
             match &self.curr_token {
-                TokenType::Ident(_, x) => keys.push(x.to_string()),
+                TokenType::Ident(_, x) => {
+                    let key_string = match &self.next_token {
+                        TokenType::LParen(..) => self.parse_function_keymap(),
+                        _ => x.to_string(),
+                    };
+                    keys.push(key_string);
+                }
                 TokenType::Blank(..) => keys.push("".to_string()),
+                TokenType::LParen(..) => {
+                    keys.push("(".to_string());
+                }
                 _ => {}
             };
 
@@ -199,6 +208,26 @@ impl Parser {
         }
 
         keys
+    }
+
+    fn parse_function_keymap(&mut self) -> String {
+        let mut key_string = "".to_string();
+
+        loop {
+            match &self.curr_token {
+                TokenType::Ident(_, v) => key_string.push_str(v),
+                TokenType::LParen(..) => key_string.push_str("("),
+                _ => {}
+            }
+            self.next_token();
+            match self.curr_token {
+                TokenType::RParen(..) => break,
+                _ => {}
+            }
+        }
+
+        key_string.push_str(")");
+        key_string
     }
 }
 
@@ -229,6 +258,37 @@ mod tests {
                     vec![
                         "KC_ESC".to_string(),
                         "KC_Q".to_string(),
+                        "".to_string(),
+                        "KC_E".to_string()
+                    ]
+                )
+            )),
+            ast.statements
+                .get(0)
+                .expect("Failed to find statement in ast")
+        );
+    }
+
+    #[test]
+    fn test_parse_with_function() {
+        let content = r##"[_QWERTY] = LAYOUT(
+  KC_ESC  , LCTL(KC_1), _____ , KC_E 
+  ),"##
+            .to_string();
+
+        let lexer = Lexer::new(&content);
+        let mut parser = Parser::new(lexer);
+
+        let ast = parser.parse();
+
+        assert_eq!(
+            &StatementEnum::KeymapStatement(KeymapStatement::new(
+                TokenType::Ident(1, "_QWERTY".to_string()),
+                LayoutStatement::new(
+                    TokenType::Layout(12),
+                    vec![
+                        "KC_ESC".to_string(),
+                        "LCTL(KC_1)".to_string(),
                         "".to_string(),
                         "KC_E".to_string()
                     ]
