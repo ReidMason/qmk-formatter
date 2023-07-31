@@ -1,4 +1,5 @@
 use crate::ast::KeymapStatement;
+use Mark::*;
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum Element {
@@ -42,18 +43,18 @@ impl Element {
 }
 
 #[derive(Clone)]
-pub enum M {
+pub enum Mark {
     K,
     B,
 }
 
-pub type Layout = Vec<Vec<M>>;
+pub type Layout = Vec<Vec<Mark>>;
 
 pub fn get_keymap_format(keymap: &KeymapStatement, layout: Layout) -> (Vec<Element>, Vec<Element>) {
     // Add an extra blank column on the end to make formatting easier
     let mut layout = layout.clone();
     for row in layout.iter_mut() {
-        row.push(M::B)
+        row.push(Mark::B)
     }
 
     let mut output: Vec<Element> = vec![Element::LineStart];
@@ -68,34 +69,34 @@ pub fn get_keymap_format(keymap: &KeymapStatement, layout: Layout) -> (Vec<Eleme
 
     // Create top row
     for (i, col) in layout[0].iter().enumerate() {
-        let mut prev: &M = &M::B;
+        let mut prev: &Mark = &Mark::B;
         if i > 0 {
             prev = match layout[0].get(i - 1) {
                 Some(x) => x,
-                None => &M::B,
+                None => &Mark::B,
             };
         }
 
         let next = match layout[0].get(i + 1) {
             Some(x) => x,
-            None => &M::B,
+            None => &Mark::B,
         };
 
         match (prev, col, next) {
-            (M::K, M::K, M::K) => output.push(Element::TopT),
-            (M::K, M::K, M::B) => output.push(Element::TopT),
-            (M::K, M::B, M::K) => output.push(Element::TopRight),
-            (M::K, M::B, M::B) => output.push(Element::TopRight),
-            (M::B, M::K, M::K) => output.push(Element::TopLeft),
-            (M::B, M::K, M::B) => output.push(Element::TopLeft),
-            (M::B, M::B, M::K) => output.push(Element::Space),
-            (M::B, M::B, M::B) => output.push(Element::Space),
+            (K, K, K) => output.push(Element::TopT),
+            (K, K, B) => output.push(Element::TopT),
+            (K, B, K) => output.push(Element::TopRight),
+            (K, B, B) => output.push(Element::TopRight),
+            (B, K, K) => output.push(Element::TopLeft),
+            (B, K, B) => output.push(Element::TopLeft),
+            (B, B, K) => output.push(Element::Space),
+            (B, B, B) => output.push(Element::Space),
         };
 
         // Get filler character
         let filler = match col {
-            M::K => Element::Horizontal,
-            M::B => Element::Space,
+            Mark::K => Element::Horizontal,
+            Mark::B => Element::Space,
         };
 
         for _ in 0..max_width + 2 {
@@ -110,31 +111,31 @@ pub fn get_keymap_format(keymap: &KeymapStatement, layout: Layout) -> (Vec<Eleme
         output.push(Element::LineStart);
 
         for (j, col) in row.iter().enumerate() {
-            let mut prev: &M = &M::B;
+            let mut prev: &Mark = &Mark::B;
             if j > 0 {
                 prev = match row.get(j - 1) {
                     Some(x) => x,
-                    None => &M::B,
+                    None => &Mark::B,
                 };
             }
 
             match (prev, col) {
-                (M::K, M::K) => output.push(Element::Vertical),
-                (M::K, M::B) => output.push(Element::Vertical),
-                (M::B, M::K) => output.push(Element::Vertical),
-                (M::B, M::B) => output.push(Element::Space),
+                (K, K) => output.push(Element::Vertical),
+                (K, B) => output.push(Element::Vertical),
+                (B, K) => output.push(Element::Vertical),
+                (B, B) => output.push(Element::Space),
             };
 
             output.push(Element::Space);
             output2.push(Element::Space);
 
             let key = match col {
-                M::K => {
+                Mark::K => {
                     let key = &keys[count];
                     output.push(Element::Key(key.to_string()));
                     key
                 }
-                M::B => "",
+                Mark::B => "",
             };
 
             for _ in key.len()..max_width {
@@ -142,7 +143,7 @@ pub fn get_keymap_format(keymap: &KeymapStatement, layout: Layout) -> (Vec<Eleme
             }
 
             let key = match col {
-                M::K => {
+                Mark::K => {
                     let key = &keys[count];
                     count += 1;
 
@@ -154,7 +155,7 @@ pub fn get_keymap_format(keymap: &KeymapStatement, layout: Layout) -> (Vec<Eleme
                         "_______"
                     }
                 }
-                M::B => "",
+                Mark::B => "",
             };
 
             for _ in key.len()..max_width {
@@ -164,7 +165,7 @@ pub fn get_keymap_format(keymap: &KeymapStatement, layout: Layout) -> (Vec<Eleme
             output.push(Element::Space);
             output2.push(Element::Space);
             match col {
-                M::K => {
+                Mark::K => {
                     if count < keys.len() {
                         output2.push(Element::Key(",".to_string()));
                     } else {
@@ -183,100 +184,100 @@ pub fn get_keymap_format(keymap: &KeymapStatement, layout: Layout) -> (Vec<Eleme
             // Add horizontal divider
             output.push(Element::LineStart);
             for (j, col) in row.iter().enumerate() {
-                let mut first: &M = &M::B;
+                let mut first: &Mark = &Mark::B;
                 if i > 0 && j > 0 {
                     first = match layout.get(i - 1) {
                         Some(x) => match x.get(j - 1) {
                             Some(x) => x,
-                            None => &M::B,
+                            None => &Mark::B,
                         },
-                        None => &M::B,
+                        None => &Mark::B,
                     };
                 }
 
-                let mut second: &M = &M::B;
+                let mut second: &Mark = &Mark::B;
                 if i > 0 {
                     second = match layout.get(i - 1) {
                         Some(x) => match x.get(j) {
                             Some(x) => x,
-                            None => &M::B,
+                            None => &Mark::B,
                         },
-                        None => &M::B,
+                        None => &Mark::B,
                     };
                 }
 
-                let mut third: &M = &M::B;
+                let mut third: &Mark = &Mark::B;
                 if i > 0 {
                     third = match layout.get(i - 1) {
                         Some(x) => match x.get(j + 1) {
                             Some(x) => x,
-                            None => &M::B,
+                            None => &Mark::B,
                         },
-                        None => &M::B,
+                        None => &Mark::B,
                     };
                 }
 
-                let mut fourth: &M = &M::B;
+                let mut fourth: &Mark = &Mark::B;
                 if j > 0 {
                     fourth = match row.get(j - 1) {
                         Some(x) => x,
-                        None => &M::B,
+                        None => &Mark::B,
                     };
                 }
 
                 let sixth = match row.get(j + 1) {
                     Some(x) => x,
-                    None => &M::B,
+                    None => &Mark::B,
                 };
-                let mut seventh: &M = &M::B;
+                let mut seventh: &Mark = &Mark::B;
                 if j > 0 {
                     seventh = match layout.get(i + 1) {
                         Some(x) => match x.get(j - 1) {
                             Some(x) => x,
-                            None => &M::B,
+                            None => &Mark::B,
                         },
-                        None => &M::B,
+                        None => &Mark::B,
                     };
                 }
 
                 let eighth = match layout.get(i + 1) {
                     Some(x) => match x.get(j) {
                         Some(x) => x,
-                        None => &M::B,
+                        None => &Mark::B,
                     },
-                    None => &M::B,
+                    None => &Mark::B,
                 };
 
                 let ninth = match layout.get(i + 1) {
                     Some(x) => match x.get(j + 1) {
                         Some(x) => x,
-                        None => &M::B,
+                        None => &Mark::B,
                     },
-                    None => &M::B,
+                    None => &Mark::B,
                 };
 
                 match (
                     first, second, third, fourth, col, sixth, seventh, eighth, ninth,
                 ) {
-                    (_, _, _, M::B, M::K, _, M::B, M::B, _) => output.push(Element::BottomLeft),
-                    (_, _, _, M::K, M::B, _, M::B, M::B, _) => output.push(Element::BottomRight),
-                    (_, _, _, M::K, M::B, _, M::K, M::B, _) => output.push(Element::RightT),
-                    (_, _, _, M::B, M::K, _, M::B, M::K, _) => output.push(Element::LeftT),
-                    (_, _, _, M::K, M::K, _, M::B, M::B, _) => output.push(Element::BottomT),
-                    (_, _, _, M::B, M::B, _, M::K, M::K, _) => output.push(Element::TopT),
-                    (_, _, _, M::B, M::B, _, M::K, M::B, _) => output.push(Element::TopRight),
-                    (_, _, _, M::B, M::B, _, M::B, M::K, _) => output.push(Element::TopLeft),
-                    (_, _, _, M::K, _, _, _, _, _) => output.push(Element::Plus),
-                    (_, _, _, _, M::K, _, _, _, _) => output.push(Element::Plus),
+                    (_, _, _, B, K, _, B, B, _) => output.push(Element::BottomLeft),
+                    (_, _, _, K, B, _, B, B, _) => output.push(Element::BottomRight),
+                    (_, _, _, K, B, _, K, B, _) => output.push(Element::RightT),
+                    (_, _, _, B, K, _, B, K, _) => output.push(Element::LeftT),
+                    (_, _, _, K, K, _, B, B, _) => output.push(Element::BottomT),
+                    (_, _, _, B, B, _, K, K, _) => output.push(Element::TopT),
+                    (_, _, _, B, B, _, K, B, _) => output.push(Element::TopRight),
+                    (_, _, _, B, B, _, B, K, _) => output.push(Element::TopLeft),
+                    (_, _, _, K, _, _, _, _, _) => output.push(Element::Plus),
+                    (_, _, _, _, K, _, _, _, _) => output.push(Element::Plus),
                     _ => output.push(Element::Space),
                 };
 
                 // Get filler character
                 let filler = match (col, eighth) {
-                    (M::K, M::K) => Element::Horizontal,
-                    (M::K, M::B) => Element::Horizontal,
-                    (M::B, M::K) => Element::Horizontal,
-                    (M::B, M::B) => Element::Space,
+                    (K, K) => Element::Horizontal,
+                    (K, B) => Element::Horizontal,
+                    (B, K) => Element::Horizontal,
+                    (B, B) => Element::Space,
                 };
 
                 for _ in 0..max_width + 2 {
@@ -290,34 +291,34 @@ pub fn get_keymap_format(keymap: &KeymapStatement, layout: Layout) -> (Vec<Eleme
     // Create buttom row
     output.push(Element::LineStart);
     for (i, col) in layout[layout.len() - 1].iter().enumerate() {
-        let mut prev: &M = &M::B;
+        let mut prev: &Mark = &Mark::B;
         if i > 0 {
             prev = match layout[layout.len() - 1].get(i - 1) {
                 Some(x) => x,
-                None => &M::B,
+                None => &Mark::B,
             };
         }
 
         let next = match layout[layout.len() - 1].get(i + 1) {
             Some(x) => x,
-            None => &M::B,
+            None => &Mark::B,
         };
 
         match (prev, col, next) {
-            (M::K, M::K, M::K) => output.push(Element::BottomT),
-            (M::K, M::K, M::B) => output.push(Element::BottomT),
-            (M::K, M::B, M::K) => output.push(Element::BottomRight),
-            (M::K, M::B, M::B) => output.push(Element::BottomRight),
-            (M::B, M::K, M::K) => output.push(Element::BottomLeft),
-            (M::B, M::K, M::B) => output.push(Element::BottomLeft),
-            (M::B, M::B, M::K) => output.push(Element::Space),
-            (M::B, M::B, M::B) => output.push(Element::Space),
+            (K, K, K) => output.push(Element::BottomT),
+            (K, K, B) => output.push(Element::BottomT),
+            (K, B, K) => output.push(Element::BottomRight),
+            (K, B, B) => output.push(Element::BottomRight),
+            (B, K, K) => output.push(Element::BottomLeft),
+            (B, K, B) => output.push(Element::BottomLeft),
+            (B, B, K) => output.push(Element::Space),
+            (B, B, B) => output.push(Element::Space),
         };
 
         // Get filler character
         let filler = match col {
-            M::K => Element::Horizontal,
-            M::B => Element::Space,
+            Mark::K => Element::Horizontal,
+            Mark::B => Element::Space,
         };
 
         for _ in 0..max_width + 2 {
@@ -348,7 +349,7 @@ mod tests {
             },
         };
 
-        let layout: Vec<Vec<M>> = vec![vec![M::K]];
+        let layout: Vec<Vec<Mark>> = vec![vec![Mark::K]];
 
         let (display, keymap) = get_keymap_format(&keymap, layout);
 
@@ -428,83 +429,11 @@ mod tests {
             },
         };
 
-        let layout: Vec<Vec<M>> = vec![
-            vec![
-                M::K,
-                M::K,
-                M::K,
-                M::K,
-                M::K,
-                M::K,
-                M::B,
-                M::B,
-                M::B,
-                M::B,
-                M::B,
-                M::K,
-                M::K,
-                M::K,
-                M::K,
-                M::K,
-                M::K,
-            ],
-            vec![
-                M::K,
-                M::K,
-                M::K,
-                M::K,
-                M::K,
-                M::K,
-                M::B,
-                M::B,
-                M::B,
-                M::B,
-                M::B,
-                M::K,
-                M::K,
-                M::K,
-                M::K,
-                M::K,
-                M::K,
-            ],
-            vec![
-                M::K,
-                M::K,
-                M::K,
-                M::K,
-                M::K,
-                M::K,
-                M::K,
-                M::K,
-                M::B,
-                M::K,
-                M::K,
-                M::K,
-                M::K,
-                M::K,
-                M::K,
-                M::K,
-                M::K,
-            ],
-            vec![
-                M::B,
-                M::B,
-                M::B,
-                M::K,
-                M::K,
-                M::K,
-                M::K,
-                M::K,
-                M::B,
-                M::K,
-                M::K,
-                M::K,
-                M::K,
-                M::K,
-                M::B,
-                M::B,
-                M::B,
-            ],
+        let layout: Vec<Vec<Mark>> = vec![
+            vec![K, K, K, K, K, K, B, B, B, B, B, K, K, K, K, K, K],
+            vec![K, K, K, K, K, K, B, B, B, B, B, K, K, K, K, K, K],
+            vec![K, K, K, K, K, K, K, K, B, K, K, K, K, K, K, K, K],
+            vec![B, B, B, K, K, K, K, K, B, K, K, K, K, K, B, B, B],
         ];
 
         let (display, keymap) = get_keymap_format(&keymap, layout);

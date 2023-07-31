@@ -6,11 +6,12 @@ use std::{
 
 use clap::Parser as ClapParser;
 use formatter::Layout;
+use formatter::Mark::*;
 use lexer::Lexer;
 use parser::Parser;
 
 use crate::{
-    formatter::{get_keymap_format, get_keymap_string, M},
+    formatter::{get_keymap_format, get_keymap_string, Mark},
     lexer::TokenType,
 };
 
@@ -93,8 +94,8 @@ fn get_formatted_file_contents(content: &str, layout: Layout) -> String {
             .iter()
             .flatten()
             .filter(|x| match x {
-                M::K => true,
-                M::B => false,
+                Mark::K => true,
+                Mark::B => false,
             })
             .count();
         for keymap in keymaps {
@@ -140,82 +141,10 @@ fn get_formatted_file_contents(content: &str, layout: Layout) -> String {
 
 fn get_layout() -> Layout {
     return vec![
-        vec![
-            M::K,
-            M::K,
-            M::K,
-            M::K,
-            M::K,
-            M::K,
-            M::B,
-            M::B,
-            M::B,
-            M::B,
-            M::B,
-            M::K,
-            M::K,
-            M::K,
-            M::K,
-            M::K,
-            M::K,
-        ],
-        vec![
-            M::K,
-            M::K,
-            M::K,
-            M::K,
-            M::K,
-            M::K,
-            M::B,
-            M::B,
-            M::B,
-            M::B,
-            M::B,
-            M::K,
-            M::K,
-            M::K,
-            M::K,
-            M::K,
-            M::K,
-        ],
-        vec![
-            M::K,
-            M::K,
-            M::K,
-            M::K,
-            M::K,
-            M::K,
-            M::K,
-            M::K,
-            M::B,
-            M::K,
-            M::K,
-            M::K,
-            M::K,
-            M::K,
-            M::K,
-            M::K,
-            M::K,
-        ],
-        vec![
-            M::B,
-            M::B,
-            M::B,
-            M::K,
-            M::K,
-            M::K,
-            M::K,
-            M::K,
-            M::B,
-            M::K,
-            M::K,
-            M::K,
-            M::K,
-            M::K,
-            M::B,
-            M::B,
-            M::B,
-        ],
+        vec![K, K, K, K, K, K, B, B, B, B, B, K, K, K, K, K, K],
+        vec![K, K, K, K, K, K, B, B, B, B, B, K, K, K, K, K, K],
+        vec![K, K, K, K, K, K, K, K, B, K, K, K, K, K, K, K, K],
+        vec![B, B, B, K, K, K, K, K, B, K, K, K, K, K, B, B, B],
     ];
 }
 
@@ -288,82 +217,10 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 const thing = other;
 "##;
         let layout: Layout = vec![
-            vec![
-                M::K,
-                M::K,
-                M::K,
-                M::K,
-                M::K,
-                M::K,
-                M::B,
-                M::B,
-                M::B,
-                M::B,
-                M::B,
-                M::K,
-                M::K,
-                M::K,
-                M::K,
-                M::K,
-                M::K,
-            ],
-            vec![
-                M::K,
-                M::K,
-                M::K,
-                M::K,
-                M::K,
-                M::K,
-                M::B,
-                M::B,
-                M::B,
-                M::B,
-                M::B,
-                M::K,
-                M::K,
-                M::K,
-                M::K,
-                M::K,
-                M::K,
-            ],
-            vec![
-                M::K,
-                M::K,
-                M::K,
-                M::K,
-                M::K,
-                M::K,
-                M::K,
-                M::K,
-                M::B,
-                M::K,
-                M::K,
-                M::K,
-                M::K,
-                M::K,
-                M::K,
-                M::K,
-                M::K,
-            ],
-            vec![
-                M::B,
-                M::B,
-                M::B,
-                M::K,
-                M::K,
-                M::K,
-                M::K,
-                M::K,
-                M::B,
-                M::K,
-                M::K,
-                M::K,
-                M::K,
-                M::K,
-                M::B,
-                M::B,
-                M::B,
-            ],
+            vec![K, K, K, K, K, K, B, B, B, B, B, K, K, K, K, K, K],
+            vec![K, K, K, K, K, K, B, B, B, B, B, K, K, K, K, K, K],
+            vec![K, K, K, K, K, K, K, K, B, K, K, K, K, K, K, K, K],
+            vec![B, B, B, K, K, K, K, K, B, K, K, K, K, K, B, B, B],
         ];
         let result = get_formatted_file_contents(content, layout);
 
@@ -425,7 +282,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 // something
 const thing = other;
 "##;
-        let layout: Layout = vec![vec![M::K, M::K, M::K]];
+        let layout: Layout = vec![vec![Mark::K, Mark::K, Mark::K]];
         let result = get_formatted_file_contents(content, layout);
 
         assert_eq!(content, result)
@@ -444,7 +301,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 // something
 const thing = other;
 "##;
-        let layout: Layout = vec![vec![M::K, M::K, M::K, M::K, M::K, M::K, M::K]];
+        let layout: Layout = vec![vec![K, K, K, K, K, K, K]];
         let result = get_formatted_file_contents(content, layout);
 
         assert_eq!(content, result)
