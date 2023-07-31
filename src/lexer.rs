@@ -1,5 +1,3 @@
-use std::fmt;
-
 pub struct Lexer {
     content: Vec<u8>,
     ch: u8,
